@@ -1,5 +1,5 @@
 # Ball Combiner
-*(Title WIP, obvs)*:w
+*(Title WIP, obvs)*
 
 
 ## Bevy Jam #2 
