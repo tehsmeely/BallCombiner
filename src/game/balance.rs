@@ -35,6 +35,18 @@ impl BalanceCounter {
         }
         i
     }
+
+    pub fn total_weight(&self) -> f32 {
+        //TODO, support dynamic weight of balls
+        0.8 * (self.total_count() as f32)
+    }
+
+    pub fn calculate_ratio(&self) -> f32 {
+        // TODO: Do this properly
+        let a = self.ball_count.get(&0).unwrap_or(&0).clone();
+        let b = self.ball_count.get(&1).unwrap_or(&0).clone();
+        a as f32 / b as f32
+    }
 }
 
 fn other_entity_if_match(match_entity: &Entity, e1: Entity, e2: Entity) -> Option<Entity> {
@@ -96,9 +108,9 @@ pub fn ball_sensor_system(
         }
         if counter_changed {
             println!("Counter changed: {:?}", balance_counter);
-            let total_mass = 0.8 * (balance_counter.total_count() as f32);
+            let total_weight = balance_counter.total_weight();
             if let Ok(mut text) = balance_text_query.get_single_mut() {
-                text.sections[0].value = format!("{:.2}", total_mass);
+                text.sections[0].value = format!("{:.2}", total_weight);
             }
         }
     }
