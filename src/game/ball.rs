@@ -18,6 +18,11 @@ pub fn spawn_ball_system(
     }
 }
 
+pub enum BallKind {
+    Red,
+    Blue,
+}
+
 #[derive(Component)]
 pub struct Ball(pub usize);
 

@@ -98,11 +98,11 @@ impl Default for Properties {
 }
 
 impl Properties {
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "debug_ui_node_colours")]
     fn default_colour() -> Color {
         debug_get_colour()
     }
-    #[cfg(not(debug_assertions))]
+    #[cfg(not(feature = "debug_ui_node_colours"))]
     fn default_colour() -> Color {
         Color::hsla(0f32, 0f32, 0f32, 0f32)
     }
@@ -129,14 +129,10 @@ impl Properties {
 /// A given [Property] enum value can exist multiple times in the vec, the latest one will
 /// be applied.
 pub fn new(properties: Vec<Property>) -> NodeBundle {
-    println!("Making new general node. Props: {:?}", properties);
     let mut prop = Properties::default();
-    println!(".");
     for property in properties.into_iter() {
         prop.set(property);
     }
-
-    println!("Prop set: {:?}", prop);
 
     NodeBundle {
         style: Style {

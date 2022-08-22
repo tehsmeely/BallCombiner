@@ -1,3 +1,4 @@
+use crate::game::audio::AudioTriggerEvent;
 use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch, Mix};
 use crate::game::GameOnlyMarker;
 use crate::ui_core::buttons::ButtonComponent;
@@ -142,7 +143,6 @@ impl TimerDisplay {
                 Property::Justify(JustifyContent::Center),
                 Property::Height(Val::Auto),
                 Property::Width(Val::Auto),
-                Property::Colour(Color::BLUE),
             ]))
             .with_children(|parent| {
                 parent
@@ -178,6 +178,7 @@ impl TimerDisplay {
         mut text_query: Query<&mut Text, With<Self>>,
         countdown: Res<Countdown>,
         level_stopwatch: Res<LevelStopwatch>,
+        mut audio_trigger_event_writer: EventWriter<AudioTriggerEvent>,
     ) {
         for mut timer_display in self_query.iter_mut() {
             let round_seconds = level_stopwatch.0.elapsed_secs().floor();
@@ -203,6 +204,10 @@ impl TimerDisplay {
                     text.sections[0].style = text_style.clone();
                 }
                 timer_display.last_secs = round_seconds;
+
+                if is_countdown && secs > 0.0 && secs <= 5.0 {
+                    audio_trigger_event_writer.send(AudioTriggerEvent::CountdownTick);
+                }
             }
         }
     }

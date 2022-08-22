@@ -1,9 +1,11 @@
+mod audio;
 mod balance;
 mod ball;
 mod cup;
 mod goals;
 mod ui;
 
+use crate::game::audio::AudioTriggerEvent;
 use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch, Mix};
 use crate::GameState;
 use balance::BalanceCounter;
@@ -24,12 +26,14 @@ impl Plugin for GamePlugin {
             })
             .insert_resource(goals::LevelStopwatch::new())
             .insert_resource(Countdown::Inactive)
+            .add_event::<AudioTriggerEvent>()
             .add_system_set(
                 SystemSet::on_enter(GameState::Game)
                     .with_system(cup::spawn_cups)
                     .with_system(balance::spawn_balance)
                     .with_system(ui::setup_ui)
-                    .with_system(reset_game_resources),
+                    .with_system(reset_game_resources)
+                    .with_system(audio::setup_audio),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Game)
@@ -40,7 +44,8 @@ impl Plugin for GamePlugin {
                     .with_system(ui::button_click_system)
                     .with_system(goals::LevelStopwatch::update_system)
                     .with_system(goals::LevelCriteria::watch_system)
-                    .with_system(goals::debug_countdown_trigger_system),
+                    .with_system(goals::debug_countdown_trigger_system)
+                    .with_system(audio::triggered_audio_system),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(cleanup));
     }

@@ -1,3 +1,4 @@
+use crate::game::audio::AudioTriggerEvent;
 use crate::game::balance::BalanceCounter;
 use crate::game::ui::TimerDisplay;
 use bevy::prelude::*;
@@ -41,6 +42,7 @@ impl LevelCriteria {
         level_stopwatch: Res<LevelStopwatch>,
         mut countdown: ResMut<Countdown>,
         balance_counter: Res<BalanceCounter>,
+        mut audio_trigger_event_writer: EventWriter<AudioTriggerEvent>,
         // TODO: don't use a local, store the one-shot final somewhre else
         mut finished: Local<bool>,
     ) {
@@ -65,7 +67,8 @@ impl LevelCriteria {
             CriteriaResult::StartCountdown => {
                 *countdown = Countdown::Active {
                     end: level_stopwatch.0.elapsed_secs() + criteria.countdown_time_secs,
-                }
+                };
+                audio_trigger_event_writer.send(AudioTriggerEvent::CountdownStarted);
             }
             CriteriaResult::CalculateResult => {
                 let true_ratio = balance_counter.calculate_ratio();
