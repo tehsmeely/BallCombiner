@@ -1,3 +1,4 @@
+use crate::game::GameOnlyMarker;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::dynamics::{Ccd, LockedAxes, RigidBody, Sleeping, Velocity};
@@ -62,6 +63,7 @@ fn spawn_cup(x_offset: f32, idx: usize, commands: &mut Commands, asset_server: &
         .insert(Sleeping::disabled())
         .insert(Velocity::default())
         .insert(Ccd::enabled())
+        .insert(GameOnlyMarker)
         .insert_bundle(SpriteBundle {
             //transform: Transform::from_xyz(0.0, 0.0, 0.0),
             sprite: Sprite {

@@ -20,12 +20,13 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(rapier)
-        .add_plugin(RapierDebugRenderPlugin::default())
+        //.add_plugin(RapierDebugRenderPlugin::default())
         //.add_plugin(LogDiagnosticsPlugin::default())
         //.add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(game::GamePlugin)
         .add_state(GameState::Game)
         .insert_resource(ImageSettings::default_nearest())
+        .add_system(ui_core::buttons::button_system)
         .add_startup_system(setup)
         .run();
 }

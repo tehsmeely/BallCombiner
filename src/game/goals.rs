@@ -25,6 +25,7 @@ impl Display for Mix {
 pub struct LevelCriteria {
     pub min_weight: f32,
     pub target_mix: Mix,
+    pub countdown_time_secs: f32,
 }
 
 impl LevelCriteria {
@@ -63,7 +64,7 @@ impl LevelCriteria {
         match result {
             CriteriaResult::StartCountdown => {
                 *countdown = Countdown::Active {
-                    end: level_stopwatch.0.elapsed_secs() + 10.0,
+                    end: level_stopwatch.0.elapsed_secs() + criteria.countdown_time_secs,
                 }
             }
             CriteriaResult::CalculateResult => {
@@ -94,6 +95,9 @@ impl LevelStopwatch {
     pub fn update_system(mut stopwatch: ResMut<Self>, time: Res<Time>) {
         stopwatch.0.tick(time.delta());
     }
+    pub fn reset(&mut self) {
+        self.0.reset();
+    }
 }
 
 pub enum Countdown {
@@ -101,14 +105,21 @@ pub enum Countdown {
     Active { end: f32 },
 }
 
+impl Countdown {
+    pub fn reset(&mut self) {
+        *self = Self::Inactive
+    }
+}
+
 pub fn debug_countdown_trigger_system(
     mut countdown: ResMut<Countdown>,
     stopwatch: Res<LevelStopwatch>,
+    level_criteria: Res<LevelCriteria>,
     input: Res<Input<KeyCode>>,
 ) {
     if input.just_pressed(KeyCode::P) {
         *countdown = Countdown::Active {
-            end: stopwatch.0.elapsed_secs() + 10.0,
+            end: stopwatch.0.elapsed_secs() + level_criteria.countdown_time_secs,
         }
     }
 }

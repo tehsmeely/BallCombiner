@@ -1,5 +1,8 @@
 use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch, Mix};
+use crate::game::GameOnlyMarker;
+use crate::ui_core::buttons::ButtonComponent;
 use crate::ui_core::nodes;
+use crate::GameState;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use nodes::Property;
@@ -10,7 +13,7 @@ pub fn setup_ui(
     criteria: Res<LevelCriteria>,
 ) {
     let text_style = TextStyle {
-        font: asset_server.load("Quicksand-Regular.ttf"),
+        font: asset_server.load("Quicksand-Regular.ttf").into(),
         font_size: 20.0,
         color: Default::default(),
     };
@@ -22,6 +25,7 @@ pub fn setup_ui(
                 Property::Padding(UiRect::new(Val::Auto, Val::Auto, Val::Px(5.0), Val::Auto)),
             ]),
         )))
+        .insert(GameOnlyMarker)
         .with_children(|parent| {
             parent
                 .spawn_bundle(nodes::new(vec![
@@ -43,10 +47,74 @@ pub fn setup_ui(
                     parent
                         .spawn_bundle(nodes::new(full_height_half_width()))
                         .with_children(|parent| {
-                            TimerDisplay::create(parent, text_style.font.clone());
+                            TimerDisplay::create(parent, &asset_server);
+                        });
+                });
+            parent
+                .spawn_bundle(nodes::new(vec![
+                    Property::Height(Val::Percent(100.0)),
+                    Property::Width(Val::Percent(100.0)),
+                    Property::Direction(FlexDirection::Row),
+                    Property::Justify(JustifyContent::FlexStart),
+                ]))
+                .with_children(|parent| {
+                    parent
+                        .spawn_bundle(nodes::new(vec![
+                            Property::Height(Val::Percent(100.0)),
+                            Property::Width(Val::Auto),
+                            Property::Direction(FlexDirection::Column),
+                        ]))
+                        .with_children(|parent| {
+                            crate::ui_core::buttons::make_button(
+                                GameActionButton::Exit,
+                                parent,
+                                text_style.font.clone(),
+                            );
+                            crate::ui_core::buttons::make_button(
+                                GameActionButton::Reset,
+                                parent,
+                                text_style.font.clone(),
+                            );
                         });
                 });
         });
+}
+
+pub fn button_click_system(
+    interaction_query: Query<
+        (&Interaction, &GameActionButton),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut state: ResMut<State<GameState>>,
+) {
+    for (interaction, game_action_button) in &interaction_query {
+        match *interaction {
+            Interaction::Clicked => match *game_action_button {
+                GameActionButton::Reset => {
+                    state.restart();
+                }
+                GameActionButton::Exit => {
+                    state.set(GameState::Menu);
+                }
+            },
+            Interaction::Hovered | Interaction::None => (),
+        }
+    }
+}
+
+#[derive(Component)]
+pub enum GameActionButton {
+    Reset,
+    Exit,
+}
+
+impl ButtonComponent for GameActionButton {
+    fn to_text(&self) -> &'static str {
+        match self {
+            GameActionButton::Reset => "Reset",
+            GameActionButton::Exit => "Exit",
+        }
+    }
 }
 
 #[derive(Component)]
@@ -57,15 +125,15 @@ pub struct TimerDisplay {
 }
 
 impl TimerDisplay {
-    fn create(parent: &mut ChildBuilder, font: Handle<Font>) {
+    fn create(parent: &mut ChildBuilder, asset_server: &AssetServer) {
         let text_style = TextStyle {
-            font: font.clone(),
-            font_size: 20.0,
+            font: asset_server.load("Quicksand-Regular.ttf"),
+            font_size: 30.0,
             color: Default::default(),
         };
         let countdown_style = TextStyle {
-            font: font.clone(),
-            font_size: 22.0,
+            font: asset_server.load("Quicksand-Bold.ttf"),
+            font_size: 30.0,
             color: Color::RED,
         };
         parent
@@ -78,17 +146,21 @@ impl TimerDisplay {
             ]))
             .with_children(|parent| {
                 parent
-                    .spawn_bundle(TextBundle {
-                        text: Text::from_section(
-                            Self::display_text(0.0, 0.0, false),
-                            text_style.clone(),
-                        ),
-                        ..default()
-                    })
-                    .insert(Self {
-                        last_secs: 0f32,
-                        normal_style: text_style,
-                        countdown_style,
+                    .spawn_bundle(nodes::new(nodes::defaults::mini_centred()))
+                    .with_children(|parent| {
+                        parent
+                            .spawn_bundle(TextBundle {
+                                text: Text::from_section(
+                                    Self::display_text(0.0, 0.0, false),
+                                    text_style.clone(),
+                                ),
+                                ..default()
+                            })
+                            .insert(Self {
+                                last_secs: 0f32,
+                                normal_style: text_style,
+                                countdown_style,
+                            });
                     });
             });
     }
@@ -161,7 +233,6 @@ impl GoalDisplay {
                 Property::Height(Val::Auto),
                 Property::Width(Val::Percent(100.0)),
                 Property::Direction(FlexDirection::Column),
-                Property::Colour(Color::GRAY),
             ]))
             .with_children(|parent| {
                 for text in texts.iter() {

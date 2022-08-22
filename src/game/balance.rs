@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::game::ball::Ball;
+use crate::game::GameOnlyMarker;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -161,6 +162,7 @@ pub fn spawn_balance(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .insert(RigidBody::Fixed)
         .insert(Collider::compound(collider_shape))
+        .insert(GameOnlyMarker)
         .with_children(|parent| {
             parent
                 .spawn()
@@ -190,5 +192,6 @@ pub fn spawn_balance(mut commands: Commands, asset_server: Res<AssetServer>) {
             text_2d_bounds: Default::default(),
             ..default()
         })
+        .insert(GameOnlyMarker)
         .insert(BalanceText);
 }
