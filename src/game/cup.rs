@@ -1,3 +1,4 @@
+use crate::game::ball::BallKind;
 use crate::game::GameOnlyMarker;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
@@ -18,23 +19,27 @@ pub fn rotate_cup_system(mut cup_query: Query<(&mut Velocity, &Cup)>, input: Res
     let ang_vel_0 = angvel_of_input(&input, KeyCode::A, KeyCode::D);
     let ang_vel_1 = angvel_of_input(&input, KeyCode::H, KeyCode::K);
     for (mut velocity, cup) in cup_query.iter_mut() {
-        if cup.0 == 0 {
-            velocity.angvel = ang_vel_0;
-        } else if cup.0 == 1 {
-            velocity.angvel = ang_vel_1;
+        match cup.0 {
+            BallKind::Blue => velocity.angvel = ang_vel_0,
+            BallKind::Red => velocity.angvel = ang_vel_1,
         }
     }
 }
 
 #[derive(Component)]
-pub struct Cup(pub usize);
+pub struct Cup(pub BallKind);
 
 pub fn spawn_cups(mut commands: Commands, asset_server: Res<AssetServer>) {
-    spawn_cup(-50.0, 0, &mut commands, &asset_server);
-    spawn_cup(50.0, 1, &mut commands, &asset_server);
+    spawn_cup(-50.0, BallKind::Blue, &mut commands, &asset_server);
+    spawn_cup(50.0, BallKind::Red, &mut commands, &asset_server);
 }
 
-fn spawn_cup(x_offset: f32, idx: usize, commands: &mut Commands, asset_server: &AssetServer) {
+fn spawn_cup(
+    x_offset: f32,
+    ball_kind: BallKind,
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+) {
     let sprite_tex = asset_server.load("cup.png");
     let shape = {
         let thickness = 4.0;
@@ -50,11 +55,7 @@ fn spawn_cup(x_offset: f32, idx: usize, commands: &mut Commands, asset_server: &
         ]
     };
     let transform = Transform::from_xyz(x_offset, 0.0, 0.0);
-    let color = if idx == 1 {
-        Color::RED
-    } else {
-        Color::default()
-    };
+    let color = ball_kind.to_color();
     commands
         .spawn()
         .insert(RigidBody::Dynamic)
@@ -75,5 +76,5 @@ fn spawn_cup(x_offset: f32, idx: usize, commands: &mut Commands, asset_server: &
             transform,
             ..default()
         })
-        .insert(Cup(idx));
+        .insert(Cup(ball_kind));
 }

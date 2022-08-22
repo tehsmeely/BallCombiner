@@ -33,7 +33,8 @@ impl Plugin for GamePlugin {
                     .with_system(balance::spawn_balance)
                     .with_system(ui::setup_ui)
                     .with_system(reset_game_resources)
-                    .with_system(audio::setup_audio),
+                    .with_system(audio::setup_audio)
+                    .with_system(spawn_background),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Game)
@@ -60,4 +61,18 @@ fn cleanup(mut commands: Commands, entities: Query<Entity, With<GameOnlyMarker>>
 fn reset_game_resources(mut stopwatch: ResMut<LevelStopwatch>, mut countdown: ResMut<Countdown>) {
     stopwatch.reset();
     countdown.reset();
+}
+
+fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let sprite = asset_server.load("background.png");
+
+    commands.spawn().insert_bundle(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(300.0, 300.0)),
+            ..default()
+        },
+        transform: Default::default(),
+        texture: sprite,
+        ..default()
+    });
 }

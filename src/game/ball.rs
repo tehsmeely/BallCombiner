@@ -13,28 +13,44 @@ pub fn spawn_ball_system(
 ) {
     if input.just_pressed(KeyCode::Return) {
         for (transform, cup) in cup_query.iter() {
-            spawn_ball(transform.translation.x, cup.0, &mut commands, &asset_server);
+            spawn_ball(
+                transform.translation.x,
+                cup.0.clone(),
+                &mut commands,
+                &asset_server,
+            );
         }
     }
 }
 
+#[derive(Component, Hash, PartialEq, Eq, Debug, Clone)]
 pub enum BallKind {
     Red,
     Blue,
 }
 
-#[derive(Component)]
-pub struct Ball(pub usize);
+impl BallKind {
+    pub fn to_color(&self) -> Color {
+        match self {
+            Self::Red => Color::RED,
+            Self::Blue => Color::BLUE,
+        }
+    }
+}
 
-fn spawn_ball(x_offset: f32, idx: usize, commands: &mut Commands, asset_server: &AssetServer) {
+#[derive(Component)]
+pub struct Ball(pub BallKind);
+
+fn spawn_ball(
+    x_offset: f32,
+    ball_kind: BallKind,
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+) {
     let radius = 2.8;
     let sprite_tex = asset_server.load("ball.png");
     let transform = Transform::from_xyz(x_offset, 100.0, 1.0);
-    let color = if idx == 1 {
-        Color::RED
-    } else {
-        Color::default()
-    };
+    let color = ball_kind.to_color();
     commands
         .spawn()
         .insert(RigidBody::Dynamic)
@@ -43,7 +59,7 @@ fn spawn_ball(x_offset: f32, idx: usize, commands: &mut Commands, asset_server: 
         //TODO: Ball CCD probably good but also likely a performance bottleneck. Revisit
         // .insert(Ccd::enabled())
         .insert(GravityScale(1.0))
-        .insert(Ball(idx))
+        .insert(Ball(ball_kind))
         .insert(GameOnlyMarker)
         .insert_bundle(SpriteBundle {
             //transform: Transform::from_xyz(0.0, 0.0, 0.0),

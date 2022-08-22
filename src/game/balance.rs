@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::game::ball::Ball;
+use crate::game::ball::{Ball, BallKind};
 use crate::game::GameOnlyMarker;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct BalanceCounter {
-    ball_count: HashMap<usize, usize>,
+    ball_count: HashMap<BallKind, usize>,
 }
 
 impl BalanceCounter {
@@ -17,15 +17,15 @@ impl BalanceCounter {
         }
     }
 
-    fn incr(&mut self, ball_id: usize) {
+    fn incr(&mut self, ball_id: BallKind) {
         *self.ball_count.entry(ball_id).or_insert(0) += 1;
     }
 
-    fn decr(&mut self, ball_id: usize) {
+    fn decr(&mut self, ball_id: BallKind) {
         match self.ball_count.get_mut(&ball_id) {
-            Some(0) => warn!("Tried to decr 0 in map (key: {}), not doing.", ball_id),
+            Some(0) => warn!("Tried to decr 0 in map (key: {:?}), not doing.", ball_id),
             Some(val) => *val -= 1,
-            None => warn!("Tried to decr nonexistent count (key: {})", ball_id),
+            None => warn!("Tried to decr nonexistent count (key: {:?})", ball_id),
         }
     }
 
@@ -44,8 +44,8 @@ impl BalanceCounter {
 
     pub fn calculate_ratio(&self) -> f32 {
         // TODO: Do this properly
-        let a = self.ball_count.get(&0).unwrap_or(&0).clone();
-        let b = self.ball_count.get(&1).unwrap_or(&0).clone();
+        let a = self.ball_count.get(&BallKind::Blue).unwrap_or(&0).clone();
+        let b = self.ball_count.get(&BallKind::Red).unwrap_or(&0).clone();
         a as f32 / b as f32
     }
 }
@@ -90,7 +90,7 @@ pub fn ball_sensor_system(
                         other_entity_if_match(&balance_sensor_entity, *e1, *e2)
                     {
                         if let Ok(ball) = ball_query.get(other_entity) {
-                            balance_counter.incr(ball.0);
+                            balance_counter.incr(ball.0.clone());
                             counter_changed = true;
                         }
                     }
@@ -100,7 +100,7 @@ pub fn ball_sensor_system(
                         other_entity_if_match(&balance_sensor_entity, *e1, *e2)
                     {
                         if let Ok(ball) = ball_query.get(other_entity) {
-                            balance_counter.decr(ball.0);
+                            balance_counter.decr(ball.0.clone());
                             counter_changed = true;
                         }
                     }
