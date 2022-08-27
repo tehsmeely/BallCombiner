@@ -1,7 +1,6 @@
 use crate::game::components::TimedRemoval;
 use crate::game::goals::LevelStopwatch;
 use crate::game::GameOnlyMarker;
-use crate::ui_core::buttons::ButtonComponent;
 use crate::ui_core::create_centred_texts;
 use crate::ui_core::nodes;
 use bevy::prelude::*;
@@ -50,19 +49,6 @@ pub fn overlay_dismiss_system(
 ) {
     if !query.is_empty() && input.just_pressed(KeyCode::Return) {
         despawn(&mut commands, &query);
-    }
-}
-
-#[derive(Component)]
-pub enum OverlayButton {
-    Okay,
-}
-
-impl ButtonComponent for OverlayButton {
-    fn to_text(&self) -> &'static str {
-        match self {
-            Self::Okay => "Okay",
-        }
     }
 }
 

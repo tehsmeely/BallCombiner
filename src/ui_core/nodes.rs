@@ -22,6 +22,7 @@ pub fn debug_get_colour() -> Color {
     c
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Property {
     Colour(Color),

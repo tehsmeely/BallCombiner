@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 
-
 use nodes::Property;
 
 use crate::game::audio::AudioTriggerEvent;
@@ -83,11 +82,11 @@ pub fn setup_ui(
         });
 }
 
+pub type InteractionAndButton = (&'static Interaction, &'static GameActionButton);
+pub type ButtonInteractionChanged = (Changed<Interaction>, With<Button>);
+
 pub fn button_click_system(
-    interaction_query: Query<
-        (&Interaction, &GameActionButton),
-        (Changed<Interaction>, With<Button>),
-    >,
+    interaction_query: Query<InteractionAndButton, ButtonInteractionChanged>,
     mut state: ResMut<State<GameState>>,
     mut commands: Commands,
 ) {
@@ -96,10 +95,10 @@ pub fn button_click_system(
             Interaction::Clicked => match *game_action_button {
                 GameActionButton::Reset => {
                     commands.insert_resource(LevelCriteria::new_random());
-                    state.restart();
+                    state.restart().unwrap();
                 }
                 GameActionButton::Exit => {
-                    state.set(GameState::Menu);
+                    state.set(GameState::Menu).unwrap();
                 }
             },
             Interaction::Hovered | Interaction::None => (),
@@ -219,13 +218,7 @@ impl TimerDisplay {
 
 #[derive(Component, Clone)]
 pub struct GoalDisplay {
-    text_style: TextStyle,
-}
-
-fn text_sections(strings: Vec<String>, text_style: TextStyle) -> impl Iterator<Item = TextSection> {
-    strings
-        .into_iter()
-        .map(move |s| TextSection::new(s, text_style.clone()))
+    _text_style: TextStyle,
 }
 
 impl GoalDisplay {
@@ -235,7 +228,14 @@ impl GoalDisplay {
             font_size: 30.0,
             color: Default::default(),
         };
-        ui_core::create_centred_texts(parent, text_style.clone(), texts, Self { text_style });
+        ui_core::create_centred_texts(
+            parent,
+            text_style.clone(),
+            texts,
+            Self {
+                _text_style: text_style,
+            },
+        );
     }
 }
 

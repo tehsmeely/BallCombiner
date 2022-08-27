@@ -9,7 +9,6 @@ use rand::prelude::Distribution;
 use rand::Rng;
 use std::fmt::{Display, Formatter};
 
-
 enum ProtoMix {
     FiftyFifty,
     FixedQuarter,
@@ -34,7 +33,7 @@ pub enum Mix {
     AB { a_pct: usize },
 }
 impl Mix {
-    pub fn to_string(&self) -> String {
+    pub fn to_string_hum(&self) -> String {
         match self {
             Self::FiftyFifty => String::from("50/50"),
             Self::AB { a_pct } => format!("{}/{}", a_pct, 100 - a_pct),
@@ -43,7 +42,7 @@ impl Mix {
 }
 impl Display for Mix {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{}", self.to_string_hum())
     }
 }
 
@@ -78,7 +77,7 @@ pub fn initial_goal_display(
     super::overlay::spawn(&mut commands, text_style, display_texts, level_stopwatch);
 }
 
-pub fn final_calculation_display() {}
+pub fn _final_calculation_display() {}
 
 impl LevelCriteria {
     pub fn to_strings(&self) -> Vec<String> {

@@ -12,7 +12,6 @@ use bevy::ui::{Node, Size, UiImage, UiRect};
 pub const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
 
 pub const NORMAL_IMAGE_BUTTON: Color = Color::rgb(1.0, 1.0, 1.0);
 const HOVERED_IMAGE_BUTTON: Color = Color::rgb(0.8, 1.0, 1.0);
@@ -31,11 +30,15 @@ pub mod rect_consts {
     };
 }
 
+pub type InteractionColorButton = (
+    &'static Interaction,
+    &'static mut UiColor,
+    Option<&'static ImageButton>,
+);
+pub type ChangedInteractionButton = (Changed<Interaction>, With<Button>);
+
 pub fn button_system(
-    mut interaction_query: Query<
-        (&Interaction, &mut UiColor, Option<&ImageButton>),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: Query<InteractionColorButton, ChangedInteractionButton>,
 ) {
     for (interaction, mut color, maybe_image_button) in interaction_query.iter_mut() {
         let is_image_button = maybe_image_button.is_some();
@@ -143,14 +146,12 @@ pub fn make_button_custom_image(
 ) -> Entity {
     let padding = match padding {
         Some(padding) => padding,
-        None => {
-            UiRect {
-                left: Val::Percent(0.0),
-                right: Val::Percent(0.0),
-                top: Val::Px(100.0),
-                bottom: Val::Px(100.0),
-            }
-        }
+        None => UiRect {
+            left: Val::Percent(0.0),
+            right: Val::Percent(0.0),
+            top: Val::Px(100.0),
+            bottom: Val::Px(100.0),
+        },
     };
     let margin = match margin {
         Some(margin) => margin,
