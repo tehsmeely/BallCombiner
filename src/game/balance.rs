@@ -139,11 +139,7 @@ pub fn spawn_balance(mut commands: Commands, asset_server: Res<AssetServer>) {
                 0.0,
                 side.clone(),
             ),
-            (
-                Vec2::new(0.0, (thickness / 2.0) + y_offset),
-                0.0,
-                bottom,
-            ),
+            (Vec2::new(0.0, (thickness / 2.0) + y_offset), 0.0, bottom),
             (Vec2::new(offset, (height / 2.0) + y_offset), 0.0, side),
         ];
         let sensor_shape = Collider::cuboid(width / 2.0, height / 2.0);
