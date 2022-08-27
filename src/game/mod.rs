@@ -14,7 +14,6 @@ use crate::GameState;
 use balance::BalanceCounter;
 use bevy::prelude::*;
 
-
 use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::prelude::RigidBody;
 

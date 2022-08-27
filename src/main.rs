@@ -4,7 +4,6 @@ use bevy::render::texture::ImageSettings;
 
 use bevy_rapier2d::prelude::*;
 
-
 mod game;
 mod menu;
 mod ui_core;
