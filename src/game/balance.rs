@@ -44,8 +44,8 @@ impl BalanceCounter {
 
     pub fn calculate_ratio(&self) -> f32 {
         // TODO: Do this properly
-        let a = self.ball_count.get(&BallKind::Blue).unwrap_or(&0).clone();
-        let b = self.ball_count.get(&BallKind::Red).unwrap_or(&0).clone();
+        let a = *self.ball_count.get(&BallKind::Blue).unwrap_or(&0);
+        let b = *self.ball_count.get(&BallKind::Red).unwrap_or(&0);
         a as f32 / b as f32
     }
 }
@@ -142,7 +142,7 @@ pub fn spawn_balance(mut commands: Commands, asset_server: Res<AssetServer>) {
             (
                 Vec2::new(0.0, (thickness / 2.0) + y_offset),
                 0.0,
-                bottom.clone(),
+                bottom,
             ),
             (Vec2::new(offset, (height / 2.0) + y_offset), 0.0, side),
         ];

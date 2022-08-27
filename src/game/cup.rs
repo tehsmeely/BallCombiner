@@ -50,7 +50,7 @@ fn spawn_cup(
         let offset = width / 2.0 - thickness / 2.0;
         vec![
             (Vec2::new(-offset, height / 2.0), 0.0, side.clone()),
-            (Vec2::new(0.0, thickness / 2.0), 0.0, bottom.clone()),
+            (Vec2::new(0.0, thickness / 2.0), 0.0, bottom),
             (Vec2::new(offset, height / 2.0), 0.0, side),
         ]
     };

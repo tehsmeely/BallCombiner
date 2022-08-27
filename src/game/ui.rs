@@ -1,10 +1,10 @@
 use bevy::prelude::*;
-use bevy::time::Stopwatch;
+
 
 use nodes::Property;
 
 use crate::game::audio::AudioTriggerEvent;
-use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch, Mix};
+use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch};
 use crate::game::GameOnlyMarker;
 use crate::ui_core::buttons::ButtonComponent;
 use crate::ui_core::nodes;
@@ -16,7 +16,7 @@ pub fn setup_ui(
     criteria: Res<LevelCriteria>,
 ) {
     let text_style = TextStyle {
-        font: asset_server.load("Quicksand-Regular.ttf").into(),
+        font: asset_server.load("Quicksand-Regular.ttf"),
         font_size: 20.0,
         color: Default::default(),
     };
@@ -231,7 +231,7 @@ fn text_sections(strings: Vec<String>, text_style: TextStyle) -> impl Iterator<I
 impl GoalDisplay {
     fn create(parent: &mut ChildBuilder, font: Handle<Font>, texts: Vec<String>) {
         let text_style = TextStyle {
-            font: font.clone(),
+            font,
             font_size: 30.0,
             color: Default::default(),
         };

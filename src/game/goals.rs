@@ -1,14 +1,14 @@
 use crate::game::audio::AudioTriggerEvent;
 use crate::game::balance::BalanceCounter;
 use crate::game::overlay::Overlay;
-use crate::game::ui::TimerDisplay;
+
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
 use rand::Rng;
 use std::fmt::{Display, Formatter};
-use std::ops::Range;
+
 
 enum ProtoMix {
     FiftyFifty,
@@ -57,7 +57,7 @@ pub fn initial_goal_display(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     //overlay_query: Query<Entity, With<Overlay>>,
-    mut level_stopwatch: ResMut<LevelStopwatch>,
+    level_stopwatch: ResMut<LevelStopwatch>,
     criteria: Res<LevelCriteria>,
 ) {
     let display_texts = vec![
@@ -215,7 +215,7 @@ pub fn debug_overlay_system(
     asset_server: Res<AssetServer>,
     overlay_query: Query<Entity, With<Overlay>>,
     input: Res<Input<KeyCode>>,
-    mut level_stopwatch: ResMut<LevelStopwatch>,
+    level_stopwatch: ResMut<LevelStopwatch>,
 ) {
     if input.just_pressed(KeyCode::I) {
         if overlay_query.is_empty() {

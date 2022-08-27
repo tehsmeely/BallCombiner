@@ -3,7 +3,7 @@ use crate::ui_core::nodes;
 use crate::GameState;
 use bevy::app::AppExit;
 use bevy::prelude::*;
-use bevy::utils::tracing::subscriber::with_default;
+
 use nodes::Property;
 
 pub struct MenuPlugin;

@@ -1,9 +1,9 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::render::texture::ImageSettings;
-use bevy::sprite::{Anchor, Material2d, MaterialMesh2dBundle};
+
 use bevy_rapier2d::prelude::*;
-use std::collections::HashMap;
+
 
 mod game;
 mod menu;
@@ -42,7 +42,7 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     commands.spawn_bundle(Camera2dBundle {
         projection: OrthographicProjection {
             scale: 0.3,

@@ -48,10 +48,8 @@ pub fn overlay_dismiss_system(
     query: Query<Entity, With<Overlay>>,
     input: Res<Input<KeyCode>>,
 ) {
-    if !query.is_empty() {
-        if input.just_pressed(KeyCode::Return) {
-            despawn(&mut commands, &query);
-        }
+    if !query.is_empty() && input.just_pressed(KeyCode::Return) {
+        despawn(&mut commands, &query);
     }
 }
 

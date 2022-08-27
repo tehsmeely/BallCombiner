@@ -9,12 +9,12 @@ mod ui;
 
 use crate::game::audio::AudioTriggerEvent;
 use crate::game::components::GeneralComponentsPlugin;
-use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch, Mix};
+use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch};
 use crate::GameState;
 use balance::BalanceCounter;
 use bevy::prelude::*;
-use bevy::render::render_resource::SamplerDescriptor;
-use bevy::render::texture::ImageSampler;
+
+
 use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::prelude::RigidBody;
 

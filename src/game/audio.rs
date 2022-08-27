@@ -39,7 +39,7 @@ impl AudioAsset {
     }
 }
 
-pub fn setup_audio(mut commands: Commands, asset_server: Res<AssetServer>, audio: Res<Audio>) {
+pub fn setup_audio(mut commands: Commands, asset_server: Res<AssetServer>, _audio: Res<Audio>) {
     commands.insert_resource(AudioAssetStore::new(&asset_server));
 }
 

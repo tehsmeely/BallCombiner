@@ -144,12 +144,12 @@ pub fn make_button_custom_image(
     let padding = match padding {
         Some(padding) => padding,
         None => {
-            (UiRect {
+            UiRect {
                 left: Val::Percent(0.0),
                 right: Val::Percent(0.0),
                 top: Val::Px(100.0),
                 bottom: Val::Px(100.0),
-            })
+            }
         }
     };
     let margin = match margin {
