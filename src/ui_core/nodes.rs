@@ -22,21 +22,24 @@ pub fn debug_get_colour() -> Color {
     c
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Property {
     Colour(Color),
     Height(Val),
     Width(Val),
     MarginAll(Val),
     Margin(UiRect<Val>),
+    MaxWidth(Val),
     PaddingAll(Val),
     Padding(UiRect<Val>),
+    PositionType(PositionType),
     Image(Handle<Image>),
     Justify(JustifyContent),
     Direction(FlexDirection),
     AspectRatio(f32),
     FlexGrow(f32),
     FlexBasis(Val),
+    Overflow(Overflow),
 }
 
 pub mod defaults {
@@ -60,6 +63,18 @@ pub mod defaults {
             Property::MarginAll(Val::Auto),
             Property::Width(Val::Auto),
             Property::Height(Val::Auto),
+            Property::FlexGrow(0.0),
+            Property::FlexBasis(Val::Percent(0.0)),
+        ]
+    }
+    pub fn mini_centred_mw() -> Vec<Property> {
+        vec![
+            Property::MarginAll(Val::Auto),
+            Property::Width(Val::Auto),
+            Property::Height(Val::Auto),
+            Property::FlexGrow(0.0),
+            Property::MaxWidth(Val::Percent(98.0)),
+            Property::FlexBasis(Val::Percent(0.0)),
         ]
     }
 }
@@ -70,13 +85,16 @@ struct Properties {
     height: Val,
     width: Val,
     margin: UiRect<Val>,
+    max_size: Size<Val>,
     padding: UiRect<Val>,
+    position_type: PositionType,
     image: UiImage,
     justify: JustifyContent,
     direction: FlexDirection,
     aspect_ratio: Option<f32>,
     flex_grow: f32,
     flex_basis: Val,
+    overflow: Overflow,
 }
 
 impl Default for Properties {
@@ -86,13 +104,16 @@ impl Default for Properties {
             height: Val::default(),
             width: Val::default(),
             margin: UiRect::all(Val::default()),
+            max_size: Default::default(),
             padding: UiRect::all(Val::default()),
+            position_type: PositionType::default(),
             image: Default::default(),
             justify: JustifyContent::default(),
             direction: FlexDirection::default(),
             aspect_ratio: None,
             flex_grow: f32::default(),
             flex_basis: Val::default(),
+            overflow: Overflow::default(),
         }
     }
 }
@@ -113,14 +134,17 @@ impl Properties {
             Property::Width(val) => self.width = val,
             Property::MarginAll(val) => self.margin = UiRect::all(val),
             Property::Margin(rect) => self.margin = rect,
+            Property::MaxWidth(val) => self.max_size = Size::new(val, Val::Auto),
             Property::PaddingAll(val) => self.padding = UiRect::all(val),
             Property::Padding(rect) => self.padding = rect,
+            Property::PositionType(pos_type) => self.position_type = pos_type,
             Property::Image(image) => self.image = UiImage(image),
             Property::Justify(justify_content) => self.justify = justify_content,
             Property::Direction(flex_direction) => self.direction = flex_direction,
             Property::AspectRatio(aspect_ratio) => self.aspect_ratio = Some(aspect_ratio),
             Property::FlexGrow(flex_grow) => self.flex_grow = flex_grow,
             Property::FlexBasis(flex_basis) => self.flex_basis = flex_basis,
+            Property::Overflow(overflow) => self.overflow = overflow,
         }
     }
 }
@@ -144,7 +168,9 @@ pub fn new(properties: Vec<Property>) -> NodeBundle {
             aspect_ratio: prop.aspect_ratio,
             flex_grow: prop.flex_grow,
             flex_basis: prop.flex_basis,
-            ..Default::default()
+            position_type: prop.position_type,
+            overflow: prop.overflow,
+            ..default()
         },
         color: UiColor(prop.colour),
         image: prop.image,

@@ -1,16 +1,25 @@
 use bevy::asset::Handle;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::prelude::{Changed, Query, With};
+use bevy::math::Vec2;
 use bevy::prelude::{
     AlignItems, BuildChildren, Button, ButtonBundle, ChildBuilder, Color, Component, Font,
     Interaction, JustifyContent, Style, Text, TextBundle, TextStyle, UiColor, Val,
 };
-use bevy::ui::{Size, UiRect};
+use bevy::render::prelude::Image;
+use bevy::ui::{Node, Size, UiImage, UiRect};
 
 pub const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
+
+pub const NORMAL_IMAGE_BUTTON: Color = Color::rgb(1.0, 1.0, 1.0);
+const HOVERED_IMAGE_BUTTON: Color = Color::rgb(0.8, 1.0, 1.0);
+const PRESSED_IMAGE_BUTTON: Color = Color::rgb(0.5, 0.5, 0.5);
+
+#[derive(Component)]
+pub struct ImageButton;
 
 pub mod rect_consts {
     use bevy::ui::{UiRect, Val};
@@ -24,22 +33,36 @@ pub mod rect_consts {
 
 pub fn button_system(
     mut interaction_query: Query<
-        (&Interaction, &mut UiColor),
+        (&Interaction, &mut UiColor, Option<&ImageButton>),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color) in interaction_query.iter_mut() {
-        match *interaction {
+    for (interaction, mut color, maybe_image_button) in interaction_query.iter_mut() {
+        let is_image_button = maybe_image_button.is_some();
+        let colour = match *interaction {
             Interaction::Clicked => {
-                *color = PRESSED_BUTTON.into();
+                if is_image_button {
+                    PRESSED_IMAGE_BUTTON
+                } else {
+                    PRESSED_BUTTON
+                }
             }
             Interaction::Hovered => {
-                *color = HOVERED_BUTTON.into();
+                if is_image_button {
+                    HOVERED_IMAGE_BUTTON
+                } else {
+                    HOVERED_BUTTON
+                }
             }
             Interaction::None => {
-                *color = NORMAL_BUTTON.into();
+                if is_image_button {
+                    NORMAL_IMAGE_BUTTON
+                } else {
+                    NORMAL_BUTTON
+                }
             }
-        }
+        };
+        *color = UiColor(colour);
     }
 }
 
@@ -109,4 +132,49 @@ where
         })
         .id();
     (button_entity, text_entity.unwrap())
+}
+pub fn make_button_custom_image(
+    button_component: impl Component,
+    button_image: Handle<Image>,
+    parent: &mut ChildBuilder,
+    button_size: Vec2,
+    padding: Option<UiRect<Val>>,
+    margin: Option<UiRect<Val>>,
+) -> Entity {
+    let padding = match padding {
+        Some(padding) => padding,
+        None => {
+            (UiRect {
+                left: Val::Percent(0.0),
+                right: Val::Percent(0.0),
+                top: Val::Px(100.0),
+                bottom: Val::Px(100.0),
+            })
+        }
+    };
+    let margin = match margin {
+        Some(margin) => margin,
+        None => rect_consts::CENTRED,
+    };
+    parent
+        .spawn_bundle(ButtonBundle {
+            node: Node { size: button_size },
+            style: Style {
+                size: Size::new(Val::Px(button_size.x), Val::Px(button_size.y)),
+                // center button
+                margin,
+                padding,
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            image: UiImage(button_image),
+            color: NORMAL_IMAGE_BUTTON.into(),
+            ..Default::default()
+        })
+        .insert(ImageButton)
+        .insert(button_component)
+        .id()
 }

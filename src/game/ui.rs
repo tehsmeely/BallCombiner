@@ -1,12 +1,14 @@
+use bevy::prelude::*;
+use bevy::time::Stopwatch;
+
+use nodes::Property;
+
 use crate::game::audio::AudioTriggerEvent;
 use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch, Mix};
 use crate::game::GameOnlyMarker;
 use crate::ui_core::buttons::ButtonComponent;
 use crate::ui_core::nodes;
-use crate::GameState;
-use bevy::prelude::*;
-use bevy::time::Stopwatch;
-use nodes::Property;
+use crate::{ui_core, GameState};
 
 pub fn setup_ui(
     mut commands: Commands,
@@ -87,11 +89,13 @@ pub fn button_click_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut state: ResMut<State<GameState>>,
+    mut commands: Commands,
 ) {
     for (interaction, game_action_button) in &interaction_query {
         match *interaction {
             Interaction::Clicked => match *game_action_button {
                 GameActionButton::Reset => {
+                    commands.insert_resource(LevelCriteria::new_random());
                     state.restart();
                 }
                 GameActionButton::Exit => {
@@ -213,7 +217,7 @@ impl TimerDisplay {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct GoalDisplay {
     text_style: TextStyle,
 }
@@ -231,30 +235,7 @@ impl GoalDisplay {
             font_size: 30.0,
             color: Default::default(),
         };
-        parent
-            .spawn()
-            .insert_bundle(nodes::new(vec![
-                Property::Justify(JustifyContent::Center),
-                Property::Height(Val::Auto),
-                Property::Width(Val::Percent(100.0)),
-                Property::Direction(FlexDirection::Column),
-            ]))
-            .with_children(|parent| {
-                for text in texts.iter() {
-                    parent
-                        .spawn_bundle(nodes::new(nodes::defaults::mini_centred()))
-                        .with_children(|parent| {
-                            parent
-                                .spawn_bundle(TextBundle {
-                                    text: Text::from_section(text, text_style.clone()),
-                                    ..default()
-                                })
-                                .insert(Self {
-                                    text_style: text_style.clone(),
-                                });
-                        });
-                }
-            });
+        ui_core::create_centred_texts(parent, text_style.clone(), texts, Self { text_style });
     }
 }
 

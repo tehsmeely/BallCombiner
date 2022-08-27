@@ -6,6 +6,7 @@ use bevy_rapier2d::prelude::*;
 use std::collections::HashMap;
 
 mod game;
+mod menu;
 mod ui_core;
 
 #[derive(Hash, Clone, PartialOrd, PartialEq, Debug, Eq)]
@@ -14,6 +15,16 @@ pub enum GameState {
     Game,
 }
 
+#[cfg(target_arch = "wasm32")]
+const WINDOW_WIDTH: f32 = 400f32;
+#[cfg(not(target_arch = "wasm32"))]
+const WINDOW_WIDTH: f32 = 1280f32;
+
+#[cfg(target_arch = "wasm32")]
+const WINDOW_HEIGHT: f32 = 320f32;
+#[cfg(not(target_arch = "wasm32"))]
+const WINDOW_HEIGHT: f32 = 720f32;
+
 fn main() {
     let rapier: RapierPhysicsPlugin<NoUserData> = RapierPhysicsPlugin::pixels_per_meter(32f32);
     App::new()
@@ -21,11 +32,13 @@ fn main() {
         .add_plugin(rapier)
         .add_plugin(bevy_kira_audio::AudioPlugin)
         .add_plugin(game::GamePlugin)
+        .add_plugin(menu::MenuPlugin)
         .add_plugin(FeatureEnabledPlugin)
-        .add_state(GameState::Game)
+        .add_state(GameState::Menu)
         .insert_resource(ImageSettings::default_nearest())
         .add_system(ui_core::buttons::button_system)
         .add_startup_system(setup)
+        .add_startup_system(setup_window)
         .run();
 }
 
@@ -59,5 +72,13 @@ impl FeatureEnabledPlugin {
     fn diagnostics(app: &mut App) {
         app.add_plugin(LogDiagnosticsPlugin::default())
             .add_plugin(FrameTimeDiagnosticsPlugin::default());
+    }
+}
+
+fn setup_window(mut windows: ResMut<Windows>) {
+    for window in windows.iter_mut() {
+        println!("{:?}", window);
+        window.set_resolution(WINDOW_WIDTH, WINDOW_HEIGHT);
+        println!("{:?}", window);
     }
 }
