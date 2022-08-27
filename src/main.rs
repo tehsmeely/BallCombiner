@@ -15,12 +15,12 @@ pub enum GameState {
 }
 
 #[cfg(target_arch = "wasm32")]
-const WINDOW_WIDTH: f32 = 400f32;
+const WINDOW_WIDTH: f32 = 640f32;
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_WIDTH: f32 = 1280f32;
 
 #[cfg(target_arch = "wasm32")]
-const WINDOW_HEIGHT: f32 = 320f32;
+const WINDOW_HEIGHT: f32 = 360f32;
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_HEIGHT: f32 = 720f32;
 
