@@ -206,13 +206,16 @@ impl TimerDisplay {
         mut audio_trigger_event_writer: EventWriter<AudioTriggerEvent>,
     ) {
         for mut timer_display in self_query.iter_mut() {
-            let round_seconds = level_stopwatch.0.elapsed_secs().floor();
+            let round_seconds = level_stopwatch.stopwatch.elapsed_secs().floor();
             if round_seconds > timer_display.last_secs {
                 //update text
                 let (text_style, mins, secs, is_countdown) = {
                     let (text_style, secs_total, is_countdown) = match *countdown {
                         Countdown::Inactive => (&timer_display.normal_style, round_seconds, false),
-                        Countdown::Active { end } => {
+                        Countdown::Active {
+                            end,
+                            end_calculated: _,
+                        } => {
                             let mut remaining_time = end - round_seconds;
                             if remaining_time < 0.0 {
                                 remaining_time = 0.0;

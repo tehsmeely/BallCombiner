@@ -2,12 +2,14 @@ use crate::game::audio::AudioTriggerEvent;
 use crate::game::balance::BalanceCounter;
 use crate::game::overlay::Overlay;
 
+use crate::game::ball::{BallKind, SpawnBallEvent};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
 use rand::Rng;
 use std::fmt::{Display, Formatter};
+use std::time::Duration;
 
 enum ProtoMix {
     FiftyFifty,
@@ -30,13 +32,21 @@ impl Distribution<ProtoMix> for Standard {
 
 pub enum Mix {
     FiftyFifty,
-    AB { a_pct: usize },
+    AB {
+        a_pct: usize,
+        a_kind: BallKind,
+        b_kind: BallKind,
+    },
 }
 impl Mix {
     pub fn to_string_hum(&self) -> String {
         match self {
             Self::FiftyFifty => String::from("50/50"),
-            Self::AB { a_pct } => format!("{}/{}", a_pct, 100 - a_pct),
+            Self::AB {
+                a_pct,
+                a_kind,
+                b_kind,
+            } => format!("{}pct {} to {}pct {}", a_pct, a_kind, 100 - a_pct, b_kind),
         }
     }
 }
@@ -77,7 +87,29 @@ pub fn initial_goal_display(
     super::overlay::spawn(&mut commands, text_style, display_texts, level_stopwatch);
 }
 
-pub fn _final_calculation_display() {}
+fn final_calculation_display(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    level_stopwatch: ResMut<LevelStopwatch>,
+    a_result: String,
+    b_result: String,
+    score: f32,
+) {
+    let display_texts = vec![
+        "Result".into(),
+        "".into(),
+        a_result,
+        b_result,
+        format!("Score: {:02}", score),
+    ];
+
+    let text_style = TextStyle {
+        font: asset_server.load("Quicksand-Regular.ttf"),
+        font_size: 20.0,
+        color: Default::default(),
+    };
+    super::overlay::spawn(&mut commands, text_style, display_texts, level_stopwatch);
+}
 
 impl LevelCriteria {
     pub fn to_strings(&self) -> Vec<String> {
@@ -89,12 +121,12 @@ impl LevelCriteria {
 
     pub fn watch_system(
         criteria: Res<Self>,
-        level_stopwatch: Res<LevelStopwatch>,
+        level_stopwatch: ResMut<LevelStopwatch>,
         mut countdown: ResMut<Countdown>,
         balance_counter: Res<BalanceCounter>,
         mut audio_trigger_event_writer: EventWriter<AudioTriggerEvent>,
-        // TODO: don't use a local, store the one-shot final somewhre else
-        mut finished: Local<bool>,
+        mut commands: Commands,
+        asset_server: Res<AssetServer>,
     ) {
         let result: CriteriaResult = match *countdown {
             Countdown::Inactive => {
@@ -104,8 +136,11 @@ impl LevelCriteria {
                     CriteriaResult::Nothing
                 }
             }
-            Countdown::Active { end } => {
-                if level_stopwatch.0.elapsed_secs() > end && !*finished {
+            Countdown::Active {
+                end,
+                end_calculated,
+            } => {
+                if level_stopwatch.stopwatch.elapsed_secs() > end && !end_calculated {
                     CriteriaResult::CalculateResult
                 } else {
                     CriteriaResult::Nothing
@@ -116,17 +151,23 @@ impl LevelCriteria {
         match result {
             CriteriaResult::StartCountdown => {
                 *countdown = Countdown::Active {
-                    end: level_stopwatch.0.elapsed_secs() + criteria.countdown_time_secs,
+                    end: level_stopwatch.stopwatch.elapsed_secs() + criteria.countdown_time_secs,
+                    end_calculated: false,
                 };
                 audio_trigger_event_writer.send(AudioTriggerEvent::CountdownStarted);
             }
             CriteriaResult::CalculateResult => {
-                let true_ratio = balance_counter.calculate_ratio();
-                println!(
-                    "True Ratio: {}. Target: {}",
-                    true_ratio, criteria.target_mix
+                let (a_result, b_result, score) =
+                    balance_counter.ratios_and_score(&criteria.target_mix);
+                final_calculation_display(
+                    commands,
+                    asset_server,
+                    level_stopwatch,
+                    a_result,
+                    b_result,
+                    score,
                 );
-                *finished = true;
+                countdown.set_end_calculated();
             }
             CriteriaResult::Nothing => (),
         };
@@ -144,15 +185,27 @@ impl LevelCriteria {
                 ProtoMix::FiftyFifty => Mix::FiftyFifty,
                 ProtoMix::FixedQuarter => {
                     let a_pct = if left { 25usize } else { 75usize };
-                    Mix::AB { a_pct }
+                    Mix::AB {
+                        a_pct,
+                        a_kind: BallKind::Blue,
+                        b_kind: BallKind::Red,
+                    }
                 }
                 ProtoMix::FixedThird => {
                     let a_pct = if left { 33usize } else { 66usize };
-                    Mix::AB { a_pct }
+                    Mix::AB {
+                        a_pct,
+                        a_kind: BallKind::Blue,
+                        b_kind: BallKind::Red,
+                    }
                 }
                 ProtoMix::RandomOther => {
                     let a_pct = rng.gen_range(10..90);
-                    Mix::AB { a_pct }
+                    Mix::AB {
+                        a_pct,
+                        a_kind: BallKind::Blue,
+                        b_kind: BallKind::Red,
+                    }
                 }
             }
         };
@@ -172,28 +225,65 @@ enum CriteriaResult {
     Nothing,
 }
 
-pub struct LevelStopwatch(pub Stopwatch);
+pub struct LevelStopwatch {
+    pub stopwatch: Stopwatch,
+    pub timer: Timer,
+}
 
 impl LevelStopwatch {
     pub fn new() -> Self {
-        Self(Stopwatch::new())
+        Self {
+            stopwatch: Stopwatch::new(),
+            timer: Timer::new(Duration::from_secs(1), true),
+        }
     }
-    pub fn update_system(mut stopwatch: ResMut<Self>, time: Res<Time>) {
-        stopwatch.0.tick(time.delta());
+    pub fn update_system(
+        mut stopwatch: ResMut<Self>,
+        time: Res<Time>,
+        mut ball_spawn_event_writer: EventWriter<SpawnBallEvent>,
+    ) {
+        stopwatch.stopwatch.tick(time.delta());
+        stopwatch.timer.tick(time.delta());
+        if stopwatch.timer.just_finished() {
+            ball_spawn_event_writer.send(SpawnBallEvent);
+        }
+    }
+    pub fn pause(&mut self) {
+        self.stopwatch.pause();
+        self.timer.pause();
+    }
+
+    pub fn paused(&mut self) -> bool {
+        self.stopwatch.paused()
+    }
+    pub fn resume(&mut self) {
+        self.stopwatch.unpause();
+        self.timer.unpause();
     }
     pub fn reset(&mut self) {
-        self.0.reset();
+        self.stopwatch.reset();
+        self.timer.reset();
     }
 }
 
 pub enum Countdown {
     Inactive,
-    Active { end: f32 },
+    Active { end: f32, end_calculated: bool },
 }
 
 impl Countdown {
     pub fn reset(&mut self) {
         *self = Self::Inactive
+    }
+
+    fn set_end_calculated(&mut self) {
+        let mut end_calc = match self {
+            Self::Active { end_calculated, .. } => Some(end_calculated),
+            Self::Inactive => None,
+        };
+        if let Some(mut end_calculated) = end_calc {
+            *end_calculated = true
+        }
     }
 }
 
@@ -205,7 +295,8 @@ pub fn debug_countdown_trigger_system(
 ) {
     if input.just_pressed(KeyCode::P) {
         *countdown = Countdown::Active {
-            end: stopwatch.0.elapsed_secs() + level_criteria.countdown_time_secs,
+            end: stopwatch.stopwatch.elapsed_secs() + level_criteria.countdown_time_secs,
+            end_calculated: false,
         }
     }
 }

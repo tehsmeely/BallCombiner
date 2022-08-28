@@ -4,14 +4,15 @@ use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::dynamics::{GravityScale, RigidBody, Sleeping};
 use bevy_rapier2d::geometry::Collider;
+use std::fmt::{Display, Formatter};
 
 pub fn spawn_ball_system(
     mut commands: Commands,
-    input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
     cup_query: Query<(&Transform, &Cup)>,
+    mut event_reader: EventReader<SpawnBallEvent>,
 ) {
-    if input.just_pressed(KeyCode::Return) {
+    for _ in event_reader.iter() {
         for (transform, cup) in cup_query.iter() {
             spawn_ball(
                 transform.translation.x,
@@ -20,6 +21,18 @@ pub fn spawn_ball_system(
                 &asset_server,
             );
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SpawnBallEvent;
+
+pub fn debug_spawn_ball_input_system(
+    input: Res<Input<KeyCode>>,
+    mut event_writer: EventWriter<SpawnBallEvent>,
+) {
+    if input.just_pressed(KeyCode::Return) {
+        event_writer.send(SpawnBallEvent);
     }
 }
 
@@ -34,6 +47,15 @@ impl BallKind {
         match self {
             Self::Red => Color::RED,
             Self::Blue => Color::BLUE,
+        }
+    }
+}
+
+impl Display for BallKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Red => write!(f, "Red"),
+            Self::Blue => write!(f, "Blue"),
         }
     }
 }

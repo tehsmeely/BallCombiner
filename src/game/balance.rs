@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::game::ball::{Ball, BallKind};
+use crate::game::goals::Mix;
 use crate::game::GameOnlyMarker;
 use std::collections::HashMap;
 
@@ -15,6 +16,10 @@ impl BalanceCounter {
         BalanceCounter {
             ball_count: HashMap::new(),
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.ball_count.clear();
     }
 
     fn incr(&mut self, ball_id: BallKind) {
@@ -47,6 +52,56 @@ impl BalanceCounter {
         let a = *self.ball_count.get(&BallKind::Blue).unwrap_or(&0);
         let b = *self.ball_count.get(&BallKind::Red).unwrap_or(&0);
         a as f32 / b as f32
+    }
+
+    pub fn ratios_and_score(&self, target_mix: &Mix) -> (String, String, f32) {
+        let (a_type, a_target, b_type, b_target) = match target_mix {
+            Mix::FiftyFifty => (BallKind::Blue, 50f32, BallKind::Red, 50f32),
+            Mix::AB {
+                a_pct,
+                a_kind,
+                b_kind,
+            } => (
+                a_kind.clone(),
+                *a_pct as f32,
+                b_kind.clone(),
+                (100 - *a_pct) as f32,
+            ),
+        };
+
+        let total = self.total_count() as f32;
+
+        let a_true_pct = {
+            let v = *self.ball_count.get(&a_type).unwrap_or(&0usize);
+            (v as f32 / total) * 100.0
+        };
+        let b_true_pct = {
+            let v = *self.ball_count.get(&b_type).unwrap_or(&0usize);
+            (v as f32 / total) * 100.0
+        };
+
+        let a_result_str = format!(
+            "{}. Goal {:02}, Actual {:02}",
+            a_target, a_target, a_true_pct
+        );
+        let b_result_str = format!(
+            "{}. Goal {:02}, Actual {:02}",
+            b_target, b_target, b_true_pct
+        );
+
+        let score = pct_to_score(a_target, a_true_pct) + pct_to_score(b_target, b_true_pct);
+        (a_result_str, b_result_str, score)
+    }
+}
+
+fn pct_to_score(target: f32, actual: f32) -> f32 {
+    let abs_difference = (target - actual).abs();
+    if abs_difference > 20.0 {
+        0.0
+    } else if abs_difference < 1.0 {
+        50.0
+    } else {
+        ((19.0 - abs_difference) / 100.0) * 48.0
     }
 }
 

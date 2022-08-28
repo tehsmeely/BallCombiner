@@ -33,12 +33,12 @@ pub fn spawn(
         })
         .insert(TimedRemoval::new(Duration::from_secs(15)));
 
-    level_stopwatch.0.pause();
+    level_stopwatch.pause();
 }
 
 pub fn timer_resume_watcher(query: Query<&Overlay>, mut level_stopwatch: ResMut<LevelStopwatch>) {
-    if query.is_empty() && level_stopwatch.0.paused() {
-        level_stopwatch.0.unpause();
+    if query.is_empty() && level_stopwatch.paused() {
+        level_stopwatch.resume();
     }
 }
 

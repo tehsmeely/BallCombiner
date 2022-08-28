@@ -14,6 +14,7 @@ use crate::GameState;
 use balance::BalanceCounter;
 use bevy::prelude::*;
 
+use crate::game::ball::SpawnBallEvent;
 use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::prelude::RigidBody;
 
@@ -29,6 +30,7 @@ impl Plugin for GamePlugin {
             .insert_resource(goals::LevelStopwatch::new())
             .insert_resource(Countdown::Inactive)
             .add_event::<AudioTriggerEvent>()
+            .add_event::<SpawnBallEvent>()
             .add_plugin(GeneralComponentsPlugin)
             .add_system_set(
                 SystemSet::on_enter(GameState::Game)
@@ -65,9 +67,21 @@ fn cleanup(mut commands: Commands, entities: Query<Entity, With<GameOnlyMarker>>
     }
 }
 
-fn reset_game_resources(mut stopwatch: ResMut<LevelStopwatch>, mut countdown: ResMut<Countdown>) {
+/*
+app.insert_resource(BalanceCounter::new())
+.insert_resource(LevelCriteria::new_random())
+.insert_resource(goals::LevelStopwatch::new())
+.insert_resource(Countdown::Inactive)
+ */
+
+fn reset_game_resources(
+    mut stopwatch: ResMut<LevelStopwatch>,
+    mut countdown: ResMut<Countdown>,
+    mut balance_counter: ResMut<BalanceCounter>,
+) {
     stopwatch.reset();
     countdown.reset();
+    balance_counter.reset();
 }
 
 fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
