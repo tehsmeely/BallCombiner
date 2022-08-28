@@ -5,10 +5,11 @@ edition = "2021"
 
 
 [features]
-default = ["debug_render_colliders", "debug_ui_node_colours"]
+default = [] #["debug_render_colliders", "debug_ui_node_colours"]
 debug_fps = []
 debug_render_colliders =  []
 debug_ui_node_colours = []
+
 
 [dependencies]
 bevy_rapier2d = "0.16.1"

@@ -32,15 +32,23 @@ fn button_margin() -> UiRect<Val> {
     UiRect::new(Val::Px(0.0), Val::Px(0.0), Val::Px(10.0), Val::Px(50.0))
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, windows: Res<Windows>) {
     let play_image = asset_server.load("buttons/play.png");
     let quit_image = asset_server.load("buttons/quit.png");
 
     println!("Menu Setup");
 
+    let window_width = windows.get_primary().unwrap().width();
+
+    let font_size = if cfg!(target_arch = "wasm32") {
+        22.0
+    } else {
+        28.0
+    };
+
     let left_text_style = TextStyle {
         font: asset_server.load("Quicksand-Regular.ttf"),
-        font_size: 28.0,
+        font_size,
         color: Default::default(),
     };
     commands
@@ -67,6 +75,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                 left_text_style,
                                 LEFT_TEXT.to_vec(),
                                 MenuOnlyMarker,
+                                Some((window_width / 2.0) - 20.0),
                             )
                         });
                 });
@@ -91,14 +100,16 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                                 Some(button_padding()),
                                 Some(button_margin()),
                             );
-                            buttons::make_button_custom_image(
-                                MenuButton::Quit,
-                                quit_image,
-                                parent,
-                                Vec2::new(110f32, 68f32),
-                                Some(button_padding()),
-                                Some(button_margin()),
-                            );
+                            if !cfg!(target_arch = "wasm32") {
+                                buttons::make_button_custom_image(
+                                    MenuButton::Quit,
+                                    quit_image,
+                                    parent,
+                                    Vec2::new(110f32, 68f32),
+                                    Some(button_padding()),
+                                    Some(button_margin()),
+                                );
+                            }
                         });
                 });
         });

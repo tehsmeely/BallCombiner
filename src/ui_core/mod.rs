@@ -14,9 +14,14 @@ pub fn create_centred_texts<C>(
     text_style: TextStyle,
     texts: Vec<impl Into<String>>,
     marker: C,
+    max_width: Option<f32>,
 ) where
     C: Component + Clone,
 {
+    let max_width = match max_width {
+        Some(width) => width,
+        None => crate::WINDOW_WIDTH / 2.0,
+    };
     parent
         .spawn()
         .insert_bundle(nodes::new(vec![
@@ -38,10 +43,7 @@ pub fn create_centred_texts<C>(
                             .spawn_bundle(TextBundle {
                                 text: Text::from_section(text, text_style.clone()),
                                 style: Style {
-                                    max_size: Size::new(
-                                        Val::Px(crate::WINDOW_WIDTH / 2.0),
-                                        Val::Auto,
-                                    ),
+                                    max_size: Size::new(Val::Px(max_width), Val::Auto),
                                     ..default()
                                 },
                                 ..default()

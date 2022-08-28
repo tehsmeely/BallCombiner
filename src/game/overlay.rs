@@ -28,7 +28,7 @@ pub fn spawn(
             parent
                 .spawn_bundle(nodes::new(centred_div(FlexDirection::ColumnReverse)))
                 .with_children(|parent| {
-                    create_centred_texts(parent, text_style.clone(), text_lines, Overlay);
+                    create_centred_texts(parent, text_style.clone(), text_lines, Overlay, None);
                 });
         })
         .insert(TimedRemoval::new(Duration::from_secs(15)));

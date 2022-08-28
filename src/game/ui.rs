@@ -19,6 +19,10 @@ pub fn setup_ui(
         font_size: 20.0,
         color: Default::default(),
     };
+
+    let exit_button = asset_server.load("buttons/exit.png");
+    let reset_button = asset_server.load("buttons/reset.png");
+
     commands
         .spawn_bundle(nodes::new(nodes::defaults::full(
             FlexDirection::ColumnReverse,
@@ -67,6 +71,7 @@ pub fn setup_ui(
                             Property::Direction(FlexDirection::Column),
                         ]))
                         .with_children(|parent| {
+                            /*
                             crate::ui_core::buttons::make_button(
                                 GameActionButton::Exit,
                                 parent,
@@ -76,6 +81,23 @@ pub fn setup_ui(
                                 GameActionButton::Reset,
                                 parent,
                                 text_style.font.clone(),
+                            );
+                             */
+                            crate::ui_core::buttons::make_button_custom_image(
+                                GameActionButton::Exit,
+                                exit_button,
+                                parent,
+                                Vec2::new(110f32, 68f32),
+                                None,
+                                None,
+                            );
+                            crate::ui_core::buttons::make_button_custom_image(
+                                GameActionButton::Reset,
+                                reset_button,
+                                parent,
+                                Vec2::new(110f32, 68f32),
+                                None,
+                                None,
                             );
                         });
                 });
@@ -235,6 +257,7 @@ impl GoalDisplay {
             Self {
                 _text_style: text_style,
             },
+            None,
         );
     }
 }

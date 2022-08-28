@@ -42,9 +42,14 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
+    let camera_scale = if cfg!(target_arch = "wasm32") {
+        0.8
+    } else {
+        0.4
+    };
     commands.spawn_bundle(Camera2dBundle {
         projection: OrthographicProjection {
-            scale: 0.3,
+            scale: camera_scale,
             ..default()
         },
         ..default()
