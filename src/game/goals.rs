@@ -76,7 +76,7 @@ pub fn initial_goal_display(
         format!("Make a mix of {:.2}", criteria.target_mix),
         format!("Minimum weight of: {:.2}", criteria.min_weight),
         format!(
-            "You get {:.1}s once you hit this weight to get it right",
+            "You get {:.0}s once you hit this weight to get it right",
             criteria.countdown_time_secs
         ),
         "(Enter to dismiss)".into(),
@@ -215,7 +215,7 @@ impl LevelCriteria {
                 }
             }
         };
-        let countdown_time_secs = rng.gen_range(5f32..15f32);
+        let countdown_time_secs = rng.gen_range(5f32..15f32).round();
 
         Self {
             min_weight,

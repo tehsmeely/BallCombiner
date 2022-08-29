@@ -27,7 +27,7 @@ pub fn setup_ui(
     };
 
     let exit_button = asset_server.load("buttons/exit.png");
-    let reset_button = asset_server.load("buttons/reset.png");
+    let reset_button = asset_server.load("buttons/restart.png");
 
     commands
         .spawn_bundle(nodes::new(nodes::defaults::full(
@@ -96,9 +96,9 @@ pub fn setup_ui(
 
                             parent.spawn_bundle(TextBundle {
                                 style: Style {
-                                    max_size: Size::new(Val::Px(150.0), Val::Auto),
+                                    max_size: Size::new(Val::Px(100.0), Val::Auto),
                                     margin: UiRect::new(
-                                        Val::Auto,
+                                        Val::Px(10.0),
                                         Val::Auto,
                                         Val::Auto,
                                         Val::Px(15.0),
