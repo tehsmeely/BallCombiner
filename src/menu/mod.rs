@@ -44,7 +44,14 @@ fn setup(
 
     println!("Menu Setup");
 
-    let window_width = windows.get_primary().unwrap().width();
+    let mut window_width = windows.get_primary().unwrap().width();
+
+    if cfg!(target_arch = "wasm32") {
+        // Don't trust initial window width in wasm
+        if window_width > crate::WINDOW_WIDTH {
+            window_width = crate::WINDOW_WIDTH
+        }
+    }
 
     let font_size = if cfg!(target_arch = "wasm32") {
         22.0
