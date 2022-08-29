@@ -177,7 +177,7 @@ fn setup(
         .insert(MenuOnlyMarker)
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle::from_section(
-                format!("Total Score: {:.2}", total_score.0),
+                format!("{}", *total_score),
                 left_text_style,
             ));
         });
@@ -215,7 +215,7 @@ pub fn button_system(
                 MenuButton::Play => state.set(GameState::Game).unwrap(),
                 MenuButton::Quit => exit.send(AppExit),
                 MenuButton::Reset => {
-                    total_score.0 = 0f32;
+                    total_score.reset();
                     state.restart().unwrap();
                 }
             },

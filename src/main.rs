@@ -5,6 +5,7 @@ use bevy::render::texture::ImageSettings;
 use crate::ui_core::buttons::{CheckboxEvent, CheckboxState};
 use bevy_kira_audio::{Audio, AudioApp, AudioChannel, AudioControl, AudioTween};
 use bevy_rapier2d::prelude::*;
+use std::fmt::Formatter;
 
 mod game;
 mod loading;
@@ -43,7 +44,7 @@ fn main() {
         .add_plugin(FeatureEnabledPlugin)
         .add_state(GameState::Loading)
         .add_event::<CheckboxEvent>()
-        .insert_resource(TotalScore(0f32))
+        .insert_resource(TotalScore::new())
         .add_system(ui_core::buttons::button_system)
         .add_system(ui_core::buttons::checkbox_button_system)
         .add_system(audio_setting_system)
@@ -68,7 +69,47 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     });
 }
 
-pub struct TotalScore(f32);
+pub struct TotalScore {
+    scores: Vec<f32>,
+}
+
+impl TotalScore {
+    pub fn new() -> Self {
+        Self { scores: Vec::new() }
+    }
+
+    pub fn reset(&mut self) {
+        self.scores.clear()
+    }
+
+    pub fn total(&self) -> f32 {
+        self.scores.iter().sum()
+    }
+
+    pub fn mix_average(&self) -> f32 {
+        if self.scores.is_empty() {
+            0.0
+        } else {
+            self.total() / (self.scores.len() as f32)
+        }
+    }
+
+    pub fn add_score(&mut self, score: f32) {
+        self.scores.push(score);
+    }
+}
+
+impl std::fmt::Display for TotalScore {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Total: {:.2} ({} Mixes. {:.2} Avg)",
+            self.total(),
+            self.scores.len(),
+            self.mix_average()
+        )
+    }
+}
 
 struct FeatureEnabledPlugin;
 impl Plugin for FeatureEnabledPlugin {

@@ -172,7 +172,7 @@ impl LevelCriteria {
                     b_result,
                     score,
                 );
-                total_score.0 += score;
+                total_score.add_score(score);
                 countdown.set_end_calculated();
             }
             CriteriaResult::Nothing => (),

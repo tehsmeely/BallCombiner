@@ -124,7 +124,7 @@ pub fn setup_ui(
                                     ..default()
                                 },
                                 text: Text::from_section(
-                                    format!("Total Score: {:.2}", total_score.0),
+                                    format!("Total score: {:.2}", total_score.total()),
                                     score_text_style,
                                 ),
                                 ..default()
