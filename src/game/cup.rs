@@ -90,6 +90,7 @@ fn spawn_centre_ui_helper(commands: &mut Commands, asset_server: &Res<AssetServe
             transform,
             ..default()
         })
+        .insert(GameOnlyMarker)
         .insert(CupUiHelper(timer));
 }
 
