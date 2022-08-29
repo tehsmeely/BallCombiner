@@ -6,6 +6,7 @@ use bevy::prelude::*;
 
 use crate::game::not_a_cup::spawn_jar;
 use crate::game::BallKind;
+use crate::ui_core::buttons::CheckboxVariant;
 use nodes::Property;
 
 pub struct MenuPlugin;
@@ -141,6 +142,26 @@ fn setup(
                                     Some(button_margin()),
                                 );
                             }
+
+                            parent
+                                .spawn_bundle(nodes::new(vec![
+                                    Property::Height(Val::Auto),
+                                    Property::Width(Val::Auto),
+                                    Property::Direction(FlexDirection::Row),
+                                    Property::Justify(JustifyContent::Center),
+                                ]))
+                                .with_children(|parent| {
+                                    buttons::make_checkbox(
+                                        parent,
+                                        CheckboxVariant::Music,
+                                        &asset_server,
+                                    );
+                                    buttons::make_checkbox(
+                                        parent,
+                                        CheckboxVariant::SFX,
+                                        &asset_server,
+                                    );
+                                });
                         });
                 });
         });
@@ -169,10 +190,10 @@ const LEFT_TEXT: [&str; 10] = [
     "",
     "",
     "",
-    "The scientists need you to mix the two ingredients in the desired ratio",
-    "Their patience is unlimited... That is, until the minimum weight is reached at which point they're coming to get it fast!",
-    "When minimum weight hit, the countdown will start ticking",
-    "When the countdown hits zero, they award you points for how close to the target mix it is",
+    "The scientists need you to mix the two ingredients in the desired ratio.",
+    "Their patience is unlimited... That is, until the minimum weight is reached at which point they're coming to get it, fast!",
+    "When minimum weight hit, the countdown will start ticking.",
+    "When the countdown hits zero, they award you points for how close to the target mix it is.",
 ];
 
 #[derive(Component)]

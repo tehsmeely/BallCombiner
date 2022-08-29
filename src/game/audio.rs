@@ -1,3 +1,4 @@
+use crate::SfxAudio;
 use bevy::log::info;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl, AudioSource};
@@ -39,14 +40,14 @@ impl AudioAsset {
     }
 }
 
-pub fn setup_audio(mut commands: Commands, asset_server: Res<AssetServer>, _audio: Res<Audio>) {
+pub fn setup_audio(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(AudioAssetStore::new(&asset_server));
 }
 
 pub fn triggered_audio_system(
     mut event_reader: EventReader<AudioTriggerEvent>,
     audio_asset_store: Res<AudioAssetStore>,
-    audio: Res<Audio>,
+    audio: Res<SfxAudio>,
 ) {
     for event in event_reader.iter() {
         match event {

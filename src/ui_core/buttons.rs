@@ -1,13 +1,12 @@
-use bevy::asset::Handle;
+use bevy::asset::{AssetServer, Handle};
 use bevy::ecs::entity::Entity;
 use bevy::ecs::prelude::{Changed, Query, With};
 use bevy::math::Vec2;
-use bevy::prelude::{
-    AlignItems, BuildChildren, Button, ButtonBundle, ChildBuilder, Color, Component, Font,
-    Interaction, JustifyContent, Style, Text, TextBundle, TextStyle, UiColor, Val,
-};
+use bevy::prelude::*;
 use bevy::render::prelude::Image;
 use bevy::ui::{Node, Size, UiImage, UiRect};
+use std::ops::Not;
+use std::time::Duration;
 
 pub const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
@@ -66,6 +65,30 @@ pub fn button_system(
             }
         };
         *color = UiColor(colour);
+    }
+}
+
+pub fn checkbox_button_system(
+    mut query: Query<(&Interaction, &mut Checkbox, &mut UiImage), Changed<Interaction>>,
+    time: Res<Time>,
+    mut event_writer: EventWriter<CheckboxEvent>,
+) {
+    for (interaction, mut checkbox, mut ui_image) in query.iter_mut() {
+        checkbox.debounce_timer.tick(time.delta());
+        if let Interaction::Clicked = interaction {
+            if checkbox.debounce_timer.finished() {
+                checkbox.toggle();
+                *ui_image = UiImage(checkbox.to_current_image());
+                checkbox.debounce_timer.reset();
+                println!("Clicking checkbox");
+                event_writer.send(CheckboxEvent {
+                    variant: checkbox.variant,
+                    new_state: checkbox.state,
+                })
+            } else {
+                println!("Not toggling checkbox, debounce");
+            }
+        }
     }
 }
 
@@ -177,5 +200,108 @@ pub fn make_button_custom_image(
         })
         .insert(ImageButton)
         .insert(button_component)
+        .id()
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum CheckboxVariant {
+    SFX,
+    Music,
+}
+impl CheckboxVariant {
+    pub fn to_checked_unchecked_filename(&self) -> (&str, &str) {
+        match self {
+            Self::SFX => ("checkbox/sfx_checked.png", "checkbox/sfx_unchecked.png"),
+            Self::Music => ("checkbox/music_checked.png", "checkbox/music_unchecked.png"),
+        }
+    }
+}
+
+pub struct CheckboxEvent {
+    pub variant: CheckboxVariant,
+    pub new_state: CheckboxState,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum CheckboxState {
+    Checked,
+    Unchecked,
+}
+
+impl Not for CheckboxState {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Self::Checked => Self::Unchecked,
+            Self::Unchecked => Self::Checked,
+        }
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct Checkbox {
+    variant: CheckboxVariant,
+    checked_image: Handle<Image>,
+    unchecked_image: Handle<Image>,
+    state: CheckboxState,
+    debounce_timer: Timer,
+}
+
+impl Checkbox {
+    fn new(
+        variant: CheckboxVariant,
+        checked_image: Handle<Image>,
+        unchecked_image: Handle<Image>,
+    ) -> Self {
+        Self {
+            variant,
+            checked_image,
+            unchecked_image,
+            state: CheckboxState::Checked,
+            debounce_timer: Timer::new(Duration::from_micros(190), false),
+        }
+    }
+
+    fn toggle(&mut self) {
+        self.state = !self.state;
+    }
+    fn to_current_image(&self) -> Handle<Image> {
+        match self.state {
+            CheckboxState::Checked => self.checked_image.clone(),
+            CheckboxState::Unchecked => self.unchecked_image.clone(),
+        }
+    }
+}
+
+pub fn make_checkbox(
+    parent: &mut ChildBuilder,
+    variant: CheckboxVariant,
+    asset_server: &AssetServer,
+) -> Entity {
+    let (checked, unchecked) = variant.to_checked_unchecked_filename();
+    let checkbox = Checkbox::new(
+        variant,
+        asset_server.load(checked),
+        asset_server.load(unchecked),
+    );
+    parent
+        .spawn_bundle(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Px(40.0), Val::Px(20.0)),
+                margin: rect_consts::CENTRED,
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            image: UiImage(checkbox.to_current_image()),
+            color: NORMAL_IMAGE_BUTTON.into(),
+            ..Default::default()
+        })
+        .insert(checkbox)
+        .insert(ImageButton)
+        //.insert(button_component)
         .id()
 }

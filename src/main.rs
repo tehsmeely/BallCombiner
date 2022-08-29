@@ -2,14 +2,18 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use bevy::render::texture::ImageSettings;
 
+use crate::ui_core::buttons::{CheckboxEvent, CheckboxState};
+use bevy_kira_audio::{Audio, AudioApp, AudioChannel, AudioControl, AudioTween};
 use bevy_rapier2d::prelude::*;
 
 mod game;
+mod loading;
 mod menu;
 mod ui_core;
 
 #[derive(Hash, Clone, PartialOrd, PartialEq, Debug, Eq)]
 pub enum GameState {
+    Loading,
     Menu,
     Game,
 }
@@ -29,16 +33,23 @@ fn main() {
     App::new()
         .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
-        .add_plugin(rapier)
         .add_plugin(bevy_kira_audio::AudioPlugin)
+        .add_plugin(rapier)
+        .add_audio_channel::<MusicChannel>()
+        .add_audio_channel::<SfxChannel>()
+        .add_plugin(loading::LoadingPlugin)
         .add_plugin(game::GamePlugin)
         .add_plugin(menu::MenuPlugin)
         .add_plugin(FeatureEnabledPlugin)
-        .add_state(GameState::Menu)
+        .add_state(GameState::Loading)
+        .add_event::<CheckboxEvent>()
         .insert_resource(TotalScore(0f32))
         .add_system(ui_core::buttons::button_system)
+        .add_system(ui_core::buttons::checkbox_button_system)
+        .add_system(audio_setting_system)
         .add_startup_system(setup)
         .add_startup_system(setup_window)
+        .add_startup_system(setup_background_music)
         .run();
 }
 
@@ -87,5 +98,42 @@ fn setup_window(mut windows: ResMut<Windows>) {
         println!("{:?}", window);
         window.set_resolution(WINDOW_WIDTH, WINDOW_HEIGHT);
         println!("{:?}", window);
+    }
+}
+
+#[derive(Component, Default, Clone)]
+pub struct MusicChannel;
+type MusicAudio = AudioChannel<MusicChannel>;
+
+#[derive(Component, Default, Clone)]
+pub struct SfxChannel;
+type SfxAudio = AudioChannel<SfxChannel>;
+
+fn setup_background_music(asset_server: Res<AssetServer>, audio: Res<MusicAudio>) {
+    let music = asset_server.load("audio/music/Getting it Done.mp3");
+    audio.play(music).looped();
+}
+
+fn audio_setting_system(
+    mut event_reader: EventReader<CheckboxEvent>,
+    mut music_channel: ResMut<MusicAudio>,
+    mut sfx_channel: ResMut<SfxAudio>,
+) {
+    for event in event_reader.iter() {
+        let event: &CheckboxEvent = event;
+        let enable = match event.new_state {
+            CheckboxState::Checked => true,
+            CheckboxState::Unchecked => false,
+        };
+        let audio = match event.variant {
+            ui_core::buttons::CheckboxVariant::Music => match enable {
+                true => music_channel.set_volume(1.0),
+                false => music_channel.set_volume(0.0),
+            },
+            ui_core::buttons::CheckboxVariant::SFX => match enable {
+                true => sfx_channel.set_volume(1.0),
+                false => sfx_channel.set_volume(0.0),
+            },
+        };
     }
 }
