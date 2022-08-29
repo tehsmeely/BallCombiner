@@ -278,6 +278,7 @@ impl LevelStopwatch {
     pub fn reset(&mut self) {
         self.stopwatch.reset();
         self.timer.reset();
+        self.stopped = false;
     }
 
     pub fn stop(&mut self) {
