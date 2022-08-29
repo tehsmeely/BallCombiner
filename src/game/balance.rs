@@ -80,14 +80,8 @@ impl BalanceCounter {
             (v as f32 / total) * 100.0
         };
 
-        let a_result_str = format!(
-            "{}. Goal {:.2}, Actual {:.2}",
-            a_target, a_target, a_true_pct
-        );
-        let b_result_str = format!(
-            "{}. Goal {:.2}, Actual {:.2}",
-            b_target, b_target, b_true_pct
-        );
+        let a_result_str = format!("{}. Goal {:.2}, Actual {:.2}", a_type, a_target, a_true_pct);
+        let b_result_str = format!("{}. Goal {:.2}, Actual {:.2}", b_type, b_target, b_true_pct);
 
         let score = pct_to_score(a_target, a_true_pct) + pct_to_score(b_target, b_true_pct);
         (a_result_str, b_result_str, score)

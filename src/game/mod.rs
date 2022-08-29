@@ -46,6 +46,7 @@ impl Plugin for GamePlugin {
                 SystemSet::on_update(GameState::Game)
                     .with_system(ball::spawn_ball_system)
                     .with_system(cup::rotate_cup_system)
+                    .with_system(cup::ui_helper_show_system)
                     .with_system(balance::ball_sensor_system)
                     .with_system(ui::TimerDisplay::update_system)
                     .with_system(ui::button_click_system)

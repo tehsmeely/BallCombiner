@@ -15,12 +15,12 @@ pub enum GameState {
 }
 
 #[cfg(target_arch = "wasm32")]
-const WINDOW_WIDTH: f32 = 640f32;
+const WINDOW_WIDTH: f32 = 960f32;
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_WIDTH: f32 = 1280f32;
 
 #[cfg(target_arch = "wasm32")]
-const WINDOW_HEIGHT: f32 = 360f32;
+const WINDOW_HEIGHT: f32 = 540f32;
 #[cfg(not(target_arch = "wasm32"))]
 const WINDOW_HEIGHT: f32 = 720f32;
 
@@ -44,7 +44,7 @@ fn main() {
 
 fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     let camera_scale = if cfg!(target_arch = "wasm32") {
-        0.8
+        0.6
     } else {
         0.4
     };

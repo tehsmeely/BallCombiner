@@ -1,4 +1,5 @@
 use crate::game::components::TimedRemoval;
+use crate::game::cup::CupUiHelper;
 use crate::game::goals::LevelStopwatch;
 use crate::game::GameOnlyMarker;
 use crate::ui_core::create_centred_texts;
@@ -36,9 +37,17 @@ pub fn spawn(
     level_stopwatch.pause();
 }
 
-pub fn timer_resume_watcher(query: Query<&Overlay>, mut level_stopwatch: ResMut<LevelStopwatch>) {
+pub fn timer_resume_watcher(
+    query: Query<&Overlay>,
+    mut level_stopwatch: ResMut<LevelStopwatch>,
+    mut ui_helper_query: Query<&mut CupUiHelper>,
+) {
     if query.is_empty() && level_stopwatch.paused() {
         level_stopwatch.resume();
+
+        for mut ui_helper in ui_helper_query.iter_mut() {
+            ui_helper.0.unpause();
+        }
     }
 }
 
@@ -60,7 +69,7 @@ fn centred_div(fd: FlexDirection) -> Vec<Property> {
         //Property::Colour(Color::RED),
         Property::MarginAll(Val::Auto),
         Property::Direction(fd),
-        Property::Colour(Color::rgba(0.7, 0.7, 0.7, 0.5)),
+        Property::Colour(Color::rgba(0.6, 0.6, 0.6, 0.6)),
         Property::PaddingAll(Val::Px(6.0)),
     ]
 }

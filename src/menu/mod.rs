@@ -44,7 +44,14 @@ fn setup(
 
     println!("Menu Setup");
 
-    let window_width = windows.get_primary().unwrap().width();
+    let mut window_width = windows.get_primary().unwrap().width();
+
+    if cfg!(target_arch = "wasm32") {
+        // Don't trust initial window width in wasm
+        if window_width > crate::WINDOW_WIDTH {
+            window_width = crate::WINDOW_WIDTH
+        }
+    }
 
     let font_size = if cfg!(target_arch = "wasm32") {
         22.0
@@ -146,16 +153,16 @@ fn setup(
 }
 
 const LEFT_TEXT: [&str; 10] = [
-    "Combine!",
+    "Frantic Lab Tech",
     "",
     "",
     "",
     "",
     "",
-    "Mix the two ingredients in the desired ratio",
-    "You have all the time in the world ... until the minimum weight is reached",
-    "When hit, the countdown will start ticking",
-    "When the countdown hits zero, you'll get points for how close to the target mix it is",
+    "The scientists need you to mix the two ingredients in the desired ratio",
+    "Their patience is unlimited... That is, until the minimum weight is reached at which point they're coming to get it fast!",
+    "When minimum weight hit, the countdown will start ticking",
+    "When the countdown hits zero, they award you points for how close to the target mix it is",
 ];
 
 #[derive(Component)]
