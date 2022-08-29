@@ -35,6 +35,7 @@ fn main() {
         .add_plugin(FeatureEnabledPlugin)
         .add_state(GameState::Menu)
         .insert_resource(ImageSettings::default_nearest())
+        .insert_resource(TotalScore(0f32))
         .add_system(ui_core::buttons::button_system)
         .add_startup_system(setup)
         .add_startup_system(setup_window)
@@ -55,6 +56,8 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
         ..default()
     });
 }
+
+pub struct TotalScore(f32);
 
 struct FeatureEnabledPlugin;
 impl Plugin for FeatureEnabledPlugin {

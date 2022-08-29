@@ -7,16 +7,22 @@ use crate::game::goals::{Countdown, LevelCriteria, LevelStopwatch};
 use crate::game::GameOnlyMarker;
 use crate::ui_core::buttons::ButtonComponent;
 use crate::ui_core::nodes;
-use crate::{ui_core, GameState};
+use crate::{ui_core, GameState, TotalScore};
 
 pub fn setup_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     criteria: Res<LevelCriteria>,
+    total_score: Res<TotalScore>,
 ) {
     let text_style = TextStyle {
         font: asset_server.load("Quicksand-Regular.ttf"),
         font_size: 20.0,
+        color: Default::default(),
+    };
+    let score_text_style = TextStyle {
+        font: text_style.font.clone(),
+        font_size: 16.0,
         color: Default::default(),
     };
 
@@ -71,18 +77,6 @@ pub fn setup_ui(
                             Property::Direction(FlexDirection::Column),
                         ]))
                         .with_children(|parent| {
-                            /*
-                            crate::ui_core::buttons::make_button(
-                                GameActionButton::Exit,
-                                parent,
-                                text_style.font.clone(),
-                            );
-                            crate::ui_core::buttons::make_button(
-                                GameActionButton::Reset,
-                                parent,
-                                text_style.font.clone(),
-                            );
-                             */
                             crate::ui_core::buttons::make_button_custom_image(
                                 GameActionButton::Exit,
                                 exit_button,
@@ -99,6 +93,24 @@ pub fn setup_ui(
                                 None,
                                 None,
                             );
+
+                            parent.spawn_bundle(TextBundle {
+                                style: Style {
+                                    max_size: Size::new(Val::Px(150.0), Val::Auto),
+                                    margin: UiRect::new(
+                                        Val::Auto,
+                                        Val::Auto,
+                                        Val::Auto,
+                                        Val::Px(15.0),
+                                    ),
+                                    ..default()
+                                },
+                                text: Text::from_section(
+                                    format!("Total Score: {:.2}", total_score.0),
+                                    score_text_style,
+                                ),
+                                ..default()
+                            });
                         });
                 });
         });

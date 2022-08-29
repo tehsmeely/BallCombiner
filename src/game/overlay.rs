@@ -31,7 +31,7 @@ pub fn spawn(
                     create_centred_texts(parent, text_style.clone(), text_lines, Overlay, None);
                 });
         })
-        .insert(TimedRemoval::new(Duration::from_secs(15)));
+        .insert(TimedRemoval::new(Duration::from_secs(10)));
 
     level_stopwatch.pause();
 }

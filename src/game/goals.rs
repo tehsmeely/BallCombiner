@@ -3,6 +3,7 @@ use crate::game::balance::BalanceCounter;
 use crate::game::overlay::Overlay;
 
 use crate::game::ball::{BallKind, SpawnBallEvent};
+use crate::TotalScore;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use rand::distributions::Standard;
@@ -71,12 +72,14 @@ pub fn initial_goal_display(
 ) {
     let display_texts = vec![
         "Goals".into(),
-        format!("Make a mix of {}", criteria.target_mix),
-        format!("Minimum weight of: {}", criteria.min_weight),
+        "-".into(),
+        format!("Make a mix of {:.2}", criteria.target_mix),
+        format!("Minimum weight of: {:.2}", criteria.min_weight),
         format!(
-            "You get {}s once you hit this weight to get it right",
+            "You get {:.1}s once you hit this weight to get it right",
             criteria.countdown_time_secs
         ),
+        "(Enter to dismiss)".into(),
     ];
 
     let text_style = TextStyle {
@@ -100,7 +103,7 @@ fn final_calculation_display(
         "".into(),
         a_result,
         b_result,
-        format!("Score: {:02}", score),
+        format!("Score: {:.2}", score),
     ];
 
     let text_style = TextStyle {
@@ -121,12 +124,13 @@ impl LevelCriteria {
 
     pub fn watch_system(
         criteria: Res<Self>,
-        level_stopwatch: ResMut<LevelStopwatch>,
+        mut level_stopwatch: ResMut<LevelStopwatch>,
         mut countdown: ResMut<Countdown>,
         balance_counter: Res<BalanceCounter>,
         mut audio_trigger_event_writer: EventWriter<AudioTriggerEvent>,
         mut commands: Commands,
         asset_server: Res<AssetServer>,
+        mut total_score: ResMut<TotalScore>,
     ) {
         let result: CriteriaResult = match *countdown {
             Countdown::Inactive => {
@@ -157,6 +161,7 @@ impl LevelCriteria {
                 audio_trigger_event_writer.send(AudioTriggerEvent::CountdownStarted);
             }
             CriteriaResult::CalculateResult => {
+                level_stopwatch.stop();
                 let (a_result, b_result, score) =
                     balance_counter.ratios_and_score(&criteria.target_mix);
                 final_calculation_display(
@@ -167,6 +172,7 @@ impl LevelCriteria {
                     b_result,
                     score,
                 );
+                total_score.0 += score;
                 countdown.set_end_calculated();
             }
             CriteriaResult::Nothing => (),
@@ -228,13 +234,20 @@ enum CriteriaResult {
 pub struct LevelStopwatch {
     pub stopwatch: Stopwatch,
     pub timer: Timer,
+    stopped: bool,
 }
 
 impl LevelStopwatch {
     pub fn new() -> Self {
+        let pre_finished_timer = {
+            let mut timer = Timer::new(Duration::from_secs(2), true);
+            timer.tick(Duration::from_millis(1500));
+            timer
+        };
         Self {
             stopwatch: Stopwatch::new(),
-            timer: Timer::new(Duration::from_secs(1), true),
+            timer: pre_finished_timer,
+            stopped: false,
         }
     }
     pub fn update_system(
@@ -257,12 +270,19 @@ impl LevelStopwatch {
         self.stopwatch.paused()
     }
     pub fn resume(&mut self) {
-        self.stopwatch.unpause();
-        self.timer.unpause();
+        if !self.stopped {
+            self.stopwatch.unpause();
+            self.timer.unpause();
+        }
     }
     pub fn reset(&mut self) {
         self.stopwatch.reset();
         self.timer.reset();
+    }
+
+    pub fn stop(&mut self) {
+        self.stopped = true;
+        self.pause();
     }
 }
 

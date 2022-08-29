@@ -81,11 +81,11 @@ impl BalanceCounter {
         };
 
         let a_result_str = format!(
-            "{}. Goal {:02}, Actual {:02}",
+            "{}. Goal {:.2}, Actual {:.2}",
             a_target, a_target, a_true_pct
         );
         let b_result_str = format!(
-            "{}. Goal {:02}, Actual {:02}",
+            "{}. Goal {:.2}, Actual {:.2}",
             b_target, b_target, b_true_pct
         );
 
@@ -96,13 +96,30 @@ impl BalanceCounter {
 
 fn pct_to_score(target: f32, actual: f32) -> f32 {
     let abs_difference = (target - actual).abs();
-    if abs_difference > 20.0 {
+    if abs_difference > 30.0 {
         0.0
     } else if abs_difference < 1.0 {
         50.0
     } else {
-        ((19.0 - abs_difference) / 100.0) * 48.0
+        ((30.0 - abs_difference) / 29.0) * 48.0
     }
+}
+
+#[test]
+fn test_pct_to_score() {
+    let target = 50.0;
+
+    fn to_2dp(f: f32) -> f32 {
+        (f * 100.0).round() / 100.0
+    }
+
+    assert_eq!(50.0, to_2dp(pct_to_score(target, 50.0)));
+    assert_eq!(41.38, to_2dp(pct_to_score(target, 45.0)));
+    assert_eq!(41.38, to_2dp(pct_to_score(target, 55.0)));
+    assert_eq!(33.1, to_2dp(pct_to_score(target, 40.0)));
+    assert_eq!(3.31, to_2dp(pct_to_score(target, 22.0)));
+    assert_eq!(1.82, to_2dp(pct_to_score(target, 21.1)));
+    assert_eq!(0.0, to_2dp(pct_to_score(target, 20.0)));
 }
 
 fn other_entity_if_match(match_entity: &Entity, e1: Entity, e2: Entity) -> Option<Entity> {

@@ -1,6 +1,6 @@
 use crate::ui_core::buttons;
 use crate::ui_core::nodes;
-use crate::GameState;
+use crate::{GameState, TotalScore};
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
@@ -32,9 +32,15 @@ fn button_margin() -> UiRect<Val> {
     UiRect::new(Val::Px(0.0), Val::Px(0.0), Val::Px(10.0), Val::Px(50.0))
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>, windows: Res<Windows>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    windows: Res<Windows>,
+    total_score: Res<TotalScore>,
+) {
     let play_image = asset_server.load("buttons/play.png");
     let quit_image = asset_server.load("buttons/quit.png");
+    let reset_score_image = asset_server.load("buttons/reset_score.png");
 
     println!("Menu Setup");
 
@@ -72,7 +78,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, windows: Res<Wi
                         .with_children(|parent| {
                             crate::ui_core::create_centred_texts(
                                 parent,
-                                left_text_style,
+                                left_text_style.clone(),
                                 LEFT_TEXT.to_vec(),
                                 MenuOnlyMarker,
                                 Some((window_width / 2.0) - 20.0),
@@ -100,6 +106,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, windows: Res<Wi
                                 Some(button_padding()),
                                 Some(button_margin()),
                             );
+                            buttons::make_button_custom_image(
+                                MenuButton::Reset,
+                                reset_score_image,
+                                parent,
+                                Vec2::new(110f32, 68f32),
+                                Some(button_padding()),
+                                Some(button_margin()),
+                            );
                             if !cfg!(target_arch = "wasm32") {
                                 buttons::make_button_custom_image(
                                     MenuButton::Quit,
@@ -112,6 +126,22 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, windows: Res<Wi
                             }
                         });
                 });
+        });
+
+    // Bottom panel
+    commands
+        .spawn_bundle(nodes::new(vec![
+            Property::Height(Val::Px(40.0)),
+            Property::Width(Val::Percent(100.0)),
+            Property::PositionType(PositionType::Absolute),
+            Property::Justify(JustifyContent::Center),
+        ]))
+        .insert(MenuOnlyMarker)
+        .with_children(|parent| {
+            parent.spawn_bundle(TextBundle::from_section(
+                format!("Total Score: {:.2}", total_score.0),
+                left_text_style,
+            ));
         });
 }
 
@@ -132,18 +162,24 @@ const LEFT_TEXT: [&str; 10] = [
 pub enum MenuButton {
     Play,
     Quit,
+    Reset,
 }
 
 pub fn button_system(
     buttons: Query<(&MenuButton, &Interaction), Changed<Interaction>>,
     mut state: ResMut<State<GameState>>,
     mut exit: EventWriter<AppExit>,
+    mut total_score: ResMut<TotalScore>,
 ) {
     for (button, interaction) in buttons.iter() {
         match interaction {
             Interaction::Clicked => match button {
                 MenuButton::Play => state.set(GameState::Game).unwrap(),
                 MenuButton::Quit => exit.send(AppExit),
+                MenuButton::Reset => {
+                    total_score.0 = 0f32;
+                    state.restart().unwrap();
+                }
             },
             Interaction::Hovered | Interaction::None => (),
         }
