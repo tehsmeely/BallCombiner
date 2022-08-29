@@ -27,6 +27,7 @@ const WINDOW_HEIGHT: f32 = 720f32;
 fn main() {
     let rapier: RapierPhysicsPlugin<NoUserData> = RapierPhysicsPlugin::pixels_per_meter(32f32);
     App::new()
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
         .add_plugin(rapier)
         .add_plugin(bevy_kira_audio::AudioPlugin)
@@ -34,7 +35,6 @@ fn main() {
         .add_plugin(menu::MenuPlugin)
         .add_plugin(FeatureEnabledPlugin)
         .add_state(GameState::Menu)
-        .insert_resource(ImageSettings::default_nearest())
         .insert_resource(TotalScore(0f32))
         .add_system(ui_core::buttons::button_system)
         .add_startup_system(setup)

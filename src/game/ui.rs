@@ -106,6 +106,24 @@ pub fn setup_ui(
                                     ..default()
                                 },
                                 text: Text::from_section(
+                                    "Press ? to toggle input overlay",
+                                    score_text_style.clone(),
+                                ),
+                                ..default()
+                            });
+
+                            parent.spawn_bundle(TextBundle {
+                                style: Style {
+                                    max_size: Size::new(Val::Px(100.0), Val::Auto),
+                                    margin: UiRect::new(
+                                        Val::Px(10.0),
+                                        Val::Auto,
+                                        Val::Auto,
+                                        Val::Px(15.0),
+                                    ),
+                                    ..default()
+                                },
+                                text: Text::from_section(
                                     format!("Total Score: {:.2}", total_score.0),
                                     score_text_style,
                                 ),

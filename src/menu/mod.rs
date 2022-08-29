@@ -4,6 +4,8 @@ use crate::{GameState, TotalScore};
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
+use crate::game::not_a_cup::spawn_jar;
+use crate::game::BallKind;
 use nodes::Property;
 
 pub struct MenuPlugin;
@@ -13,9 +15,13 @@ struct MenuOnlyMarker;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Menu).with_system(setup))
-            .add_system_set(SystemSet::on_update(GameState::Menu).with_system(button_system))
-            .add_system_set(SystemSet::on_exit(GameState::Menu).with_system(cleanup));
+        app.add_system_set(
+            SystemSet::on_enter(GameState::Menu)
+                .with_system(setup)
+                .with_system(debug_tank_setup),
+        )
+        .add_system_set(SystemSet::on_update(GameState::Menu).with_system(button_system))
+        .add_system_set(SystemSet::on_exit(GameState::Menu).with_system(cleanup));
     }
 }
 
@@ -30,6 +36,10 @@ fn button_padding() -> UiRect<Val> {
 }
 fn button_margin() -> UiRect<Val> {
     UiRect::new(Val::Px(0.0), Val::Px(0.0), Val::Px(10.0), Val::Px(50.0))
+}
+
+fn debug_tank_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    //spawn_jar(0.0, BallKind::Blue, &mut commands, &asset_server);
 }
 
 fn setup(

@@ -1,9 +1,11 @@
 use crate::game::ball::BallKind;
+use crate::game::not_a_cup::spawn_jar;
 use crate::game::GameOnlyMarker;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::dynamics::{Ccd, LockedAxes, RigidBody, Sleeping, Velocity};
-use bevy_rapier2d::geometry::Collider;
+use bevy_rapier2d::geometry::{Collider, CollisionGroups};
+use rand::Rng;
 use std::time::Duration;
 
 fn angvel_of_input(input: &Input<KeyCode>, ac: KeyCode, c: KeyCode, fast: bool) -> f32 {
@@ -46,8 +48,9 @@ pub fn ui_helper_show_system(
         }
     }
     if input.just_pressed(KeyCode::Slash) {
-        for (mut vis, _) in query.iter_mut() {
+        for (mut vis, mut helper) in query.iter_mut() {
             vis.is_visible = !vis.is_visible;
+            helper.0.pause();
         }
     }
 }
@@ -59,7 +62,13 @@ pub struct Cup(pub BallKind);
 pub struct CupUiHelper(pub Timer);
 
 pub fn spawn_cups(mut commands: Commands, asset_server: Res<AssetServer>) {
-    spawn_cup(-50.0, BallKind::Blue, &mut commands, &asset_server);
+    let mut rng = rand::thread_rng();
+    let spawn_jar_instead = rng.gen_bool(0.25);
+    if spawn_jar_instead {
+        spawn_jar(-50.0, BallKind::Blue, &mut commands, &asset_server);
+    } else {
+        spawn_cup(-50.0, BallKind::Blue, &mut commands, &asset_server);
+    }
     spawn_cup(50.0, BallKind::Red, &mut commands, &asset_server);
     spawn_centre_ui_helper(&mut commands, &asset_server);
 }
@@ -124,6 +133,7 @@ fn spawn_cup(
         .insert(Sleeping::disabled())
         .insert(Velocity::default())
         .insert(Ccd::enabled())
+        .insert(CollisionGroups::new(0b0001, 0b0111))
         .insert(GameOnlyMarker)
         .insert_bundle(SpriteBundle {
             //transform: Transform::from_xyz(0.0, 0.0, 0.0),
@@ -152,5 +162,6 @@ fn spawn_cup(
             transform: ui_transform,
             ..default()
         })
+        .insert(GameOnlyMarker)
         .insert(CupUiHelper(timer));
 }

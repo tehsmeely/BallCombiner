@@ -224,6 +224,7 @@ pub fn spawn_balance(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .insert(RigidBody::Fixed)
         .insert(Collider::compound(collider_shape))
+        .insert(CollisionGroups::new(0b0001, 0b0111))
         .insert(GameOnlyMarker)
         .with_children(|parent| {
             parent

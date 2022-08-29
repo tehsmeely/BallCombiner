@@ -4,8 +4,11 @@ mod ball;
 mod components;
 mod cup;
 mod goals;
+pub mod not_a_cup;
 mod overlay;
 mod ui;
+
+pub use ball::BallKind;
 
 use crate::game::audio::AudioTriggerEvent;
 use crate::game::components::GeneralComponentsPlugin;
@@ -56,7 +59,8 @@ impl Plugin for GamePlugin {
                     .with_system(goals::debug_overlay_system)
                     .with_system(audio::triggered_audio_system)
                     .with_system(overlay::timer_resume_watcher)
-                    .with_system(overlay::overlay_dismiss_system),
+                    .with_system(overlay::overlay_dismiss_system)
+                    .with_system(not_a_cup::JarDoor::system),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(cleanup));
     }

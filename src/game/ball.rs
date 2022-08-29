@@ -1,15 +1,17 @@
 use crate::game::cup::Cup;
+use crate::game::not_a_cup::Jar;
 use crate::game::GameOnlyMarker;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::dynamics::{GravityScale, RigidBody, Sleeping};
-use bevy_rapier2d::geometry::Collider;
+use bevy_rapier2d::geometry::{Collider, CollisionGroups};
 use std::fmt::{Display, Formatter};
 
 pub fn spawn_ball_system(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     cup_query: Query<(&Transform, &Cup)>,
+    jar_query: Query<(&Transform, &Jar)>,
     mut event_reader: EventReader<SpawnBallEvent>,
 ) {
     for _ in event_reader.iter() {
@@ -17,6 +19,16 @@ pub fn spawn_ball_system(
             spawn_ball(
                 transform.translation.x,
                 cup.0.clone(),
+                &mut commands,
+                &asset_server,
+            );
+        }
+
+        let jar_offset = -5.0;
+        for (transform, jar) in jar_query.iter() {
+            spawn_ball(
+                transform.translation.x + jar_offset,
+                jar.0.clone(),
                 &mut commands,
                 &asset_server,
             );
@@ -82,6 +94,7 @@ fn spawn_ball(
         // .insert(Ccd::enabled())
         .insert(GravityScale(1.0))
         .insert(Ball(ball_kind))
+        .insert(CollisionGroups::new(0b0001, 0b0111))
         .insert(GameOnlyMarker)
         .insert_bundle(SpriteBundle {
             //transform: Transform::from_xyz(0.0, 0.0, 0.0),
